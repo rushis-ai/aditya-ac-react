@@ -88,8 +88,8 @@ export default function Contact() {
             gap: 16
           }}>
             {[
-              { icon: '📞', title: 'Call Us', info: '+91 XXXXXXXXXX', action: 'Tap to Call', href: 'tel:+917617002071', color: 'var(--blue)' },
-              { icon: '💬', title: 'WhatsApp', info: '+91 XXXXXXXXXX', action: 'Chat Now', href: 'https://wa.me/917617002071', color: '#25D366' },
+              { icon: '📞', title: 'Call Us', info: '+91 7617002071', action: 'Tap to Call', href: 'tel:+917617002071', color: 'var(--blue)' },
+              { icon: '💬', title: 'WhatsApp', info: '+91 7617002071', action: 'Chat Now', href: 'https://wa.me/917617002071', color: '#25D366' },
               { icon: '🕐', title: 'Business Hours', info: 'Open Every Day', action: 'Closes 11:30 PM', href: null, color: '#f59e0b' },
             ].map((card, i) => (
               <motion.a
