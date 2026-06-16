@@ -87,7 +87,7 @@ export default function Hero() {
           display: 'flex', gap: 14,
           flexWrap: 'wrap', marginBottom: 52
         }}>
-          <a href="tel:+919999999999" className="btn-primary"
+          <a href="tel:+917617002071" className="btn-primary"
             style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             📞 Call Now
           </a>

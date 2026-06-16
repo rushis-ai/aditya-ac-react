@@ -24,7 +24,7 @@ export default function CTABanner() {
             marginBottom: 36
           }}>Same-day service · Open till 11:30 PM · Chandkheda, Ahmedabad</p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="tel:+919999999999" className="btn-primary">📞 Call Now</a>
+            <a href="tel:+917617002071" className="btn-primary">📞 Call Now</a>
             <Link to="/contact" className="btn-outline">Book a Service</Link>
           </div>
         </motion.div>

@@ -88,8 +88,8 @@ export default function Contact() {
             gap: 16
           }}>
             {[
-              { icon: '📞', title: 'Call Us', info: '+91 XXXXXXXXXX', action: 'Tap to Call', href: 'tel:+919999999999', color: 'var(--blue)' },
-              { icon: '💬', title: 'WhatsApp', info: '+91 XXXXXXXXXX', action: 'Chat Now', href: 'https://wa.me/919999999999', color: '#25D366' },
+              { icon: '📞', title: 'Call Us', info: '+91 XXXXXXXXXX', action: 'Tap to Call', href: 'tel:+917617002071', color: 'var(--blue)' },
+              { icon: '💬', title: 'WhatsApp', info: '+91 XXXXXXXXXX', action: 'Chat Now', href: 'https://wa.me/917617002071', color: '#25D366' },
               { icon: '🕐', title: 'Business Hours', info: 'Open Every Day', action: 'Closes 11:30 PM', href: null, color: '#f59e0b' },
             ].map((card, i) => (
               <motion.a
@@ -293,7 +293,7 @@ export default function Contact() {
 
               {/* WhatsApp CTA */}
               <a
-                href="https://wa.me/919999999999?text=Hi%2C%20I%20need%20AC%20service"
+                href="https://wa.me/917617002071?text=Hi%2C%20I%20need%20AC%20service"
                 target="_blank"
                 rel="noreferrer"
                 style={{

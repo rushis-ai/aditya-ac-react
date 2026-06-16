@@ -56,7 +56,7 @@ export default function Navbar() {
         </ul>
 
         {/* Call Button */}
-        <a href="tel:+919999999999" className="btn-primary" style={{
+        <a href="tel:+917617002071" className="btn-primary" style={{
           padding: '9px 20px', fontSize: 14
         }} className="desktop-nav">
           📞 Call Now
@@ -89,7 +89,7 @@ export default function Navbar() {
               padding: '6px 0'
             }}>{label}</Link>
           ))}
-          <a href="tel:+919999999999" className="btn-primary" style={{ textAlign: 'center' }}>
+          <a href="tel:+917617002071" className="btn-primary" style={{ textAlign: 'center' }}>
             📞 Call Now
           </a>
         </div>
