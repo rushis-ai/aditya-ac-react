@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import heroImg from '../assets/wireman-dissasembling-air-conditioner.jpg'
+import heroImg from '../assets/wireman-dissasembling-air-conditioner.webp'
 
 export default function Hero() {
   return (
