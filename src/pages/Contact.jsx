@@ -27,7 +27,7 @@ export default function Contact() {
       name: form.name.value,
       phone: form.phone.value,
       service: form.service.value,
-      message: form.message.value || ''
+      message: ''
     }
     try {
       fetch(SHEET_URL, {
