@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 
-const SHEET_URL = 'https://script.google.com/macros/s/XXXXXXXXXX/exec'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzeJ9PGrsJvodyor_DA6qA3jg5Qxm97Tle3yl0A3QYI1Zx5p_uXAQh8jdEpp9LA6hSC/exec'
 
 const inputStyle = {
   fontFamily: 'var(--font-body)', fontSize: 15,
