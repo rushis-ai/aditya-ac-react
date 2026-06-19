@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzeJ9PGrsJvodyor_DA6qA3jg5Qxm97Tle3yl0A3QYI1Zx5p_uXAQh8jdEpp9LA6hSC/exec'
 
@@ -19,6 +19,11 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    document.title = 'Contact Us | Aditya Air Conditioning & Refrigeration Services'
+    document.querySelector('meta[name="description"]')?.setAttribute('content', 'Need AC or refrigeration services in Chandkheda, Motera, Ahmedabad? Contact Aditya Air Conditioning & Refrigeration Services for expert assistance.')
+  }, [])
+  
  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)

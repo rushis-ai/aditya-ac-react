@@ -1,12 +1,8 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import CTABanner from '../components/CTABanner'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
-useEffect(() => {
-  document.title = 'Our Services | Aditya Air Conditioning & Refrigeration Services'
-  document.querySelector('meta[name="description"]')?.setAttribute('content', 'AC installation, repair, gas refill, deep cleaning, refrigeration & AMC plans in Chandkheda, Ahmedabad. All brands serviced.')
-}, [])
 
 const services = [
   {
@@ -39,6 +35,12 @@ const services = [
 const brands = ['Daikin', 'Voltas', 'LG', 'Blue Star', 'Hitachi', 'Samsung', 'Carrier', 'Lloyd', 'Godrej', 'Whirlpool', 'Panasonic', 'Haier']
 
 export default function Services() {
+
+useEffect(() => {
+  document.title = 'Our Services | Aditya Air Conditioning & Refrigeration Services'
+  document.querySelector('meta[name="description"]')?.setAttribute('content', 'AC installation, repair, gas refill, deep cleaning, refrigeration & AMC plans in Chandkheda, Ahmedabad. All brands serviced.')
+}, [])
+
   return (
     <div style={{ paddingTop: 64 }}>
       {/* Header */}
