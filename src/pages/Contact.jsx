@@ -19,7 +19,7 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     const form = e.target
@@ -27,21 +27,25 @@ export default function Contact() {
       name: form.name.value,
       phone: form.phone.value,
       service: form.service.value,
-      message: form.message.value
+      message: form.message.value || ''
     }
     try {
-      await fetch(SHEET_URL, {
+      fetch(SHEET_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-      setSubmitted(true)
-      form.reset()
+      // no-cors never returns a readable response
+      // so we show success immediately after sending
+      setTimeout(() => {
+        setLoading(false)
+        setSubmitted(true)
+        form.reset()
+      }, 1500)
     } catch {
-      alert('Something went wrong. Please call us directly.')
-    } finally {
       setLoading(false)
+      alert('Something went wrong. Please call us directly.')
     }
   }
 
