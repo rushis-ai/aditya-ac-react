@@ -20,7 +20,7 @@ export default function Footer() {
               <span style={{ color: 'var(--blue)' }}>❄</span> Aditya AC
             </div>
             <p style={{ fontSize: 14, color: 'var(--gray-400)', lineHeight: 1.7 }}>
-              Expert AC & refrigeration services in Ahmedabad. Trusted by 39+ happy customers.
+              From installation to repair, we keep your AC running perfectly. Serving Chandkheda, Motera & across Ahmedabad.
             </p>
           </div>
 
