@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { getAttribution } from '../utils/attribution'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzeJ9PGrsJvodyor_DA6qA3jg5Qxm97Tle3yl0A3QYI1Zx5p_uXAQh8jdEpp9LA6hSC/exec'
 
@@ -32,7 +33,8 @@ export default function Contact() {
       name: form.name.value,
       phone: form.phone.value,
       service: form.service.value,
-      message: ''
+      message: '',
+      ...getAttribution()
     }
     try {
       fetch(SHEET_URL, {
