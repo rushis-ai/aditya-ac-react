@@ -1,75 +1,157 @@
-const FIRST = 'first_touch'
-const LAST = 'last_touch'
-const MAX_AGE = 60 * 60 * 24 * 180 // 180 days
+// src/utils/attribution.js
+// First-touch source tracking. First visit wins. Later visits never overwrite it.
+// Debug: add ?ft_debug=1 to any URL and open the browser console.
 
-function read(name) {
+// ============ CONFIG: edit only this block ============
+const CONFIG = {
+  cookieFirst: 'ft_src',          // first touch (locked)
+  cookieLast: 'lt_src',           // last touch (updates)
+  maxAgeDays: 30,
+  rootDomain: '',                 // Leave '' on vercel.app. After you buy a domain, set e.g. 'adityaac.in'
+  ownDomains: ['aditya-ac-react.vercel.app', 'localhost'], // add your custom domain here too
+  consentRequired: false,         // true = cookie only after window.ftConsent === true
+  ai: {
+    'chatgpt.com': 'ChatGPT', 'chat.openai.com': 'ChatGPT',
+    'perplexity.ai': 'Perplexity', 'gemini.google.com': 'Gemini',
+    'copilot.microsoft.com': 'Copilot', 'claude.ai': 'Claude'
+  },
+  email: {
+    'mail.google.com': 'Gmail', 'outlook.live.com': 'Outlook',
+    'outlook.office.com': 'Outlook', 'mail.yahoo.com': 'Yahoo Mail'
+  },
+  search: {
+    'google.*': 'Google', 'bing.com': 'Bing', 'yahoo.com': 'Yahoo',
+    'duckduckgo.com': 'DuckDuckGo', 'yandex.*': 'Yandex',
+    'baidu.com': 'Baidu', 'ecosia.org': 'Ecosia'
+  },
+  paid: [
+    ['gclid', 'Paid-Google'], ['gbraid', 'Paid-Google'], ['wbraid', 'Paid-Google'],
+    ['fbclid', 'Paid-Meta'], ['msclkid', 'Paid-Microsoft']
+  ]
+}
+// ======================================================
+
+// ---------- helpers ----------
+function hostOf(ref) {
+  try { return ref ? new URL(ref).hostname.toLowerCase() : '' } catch { return '' }
+}
+
+// Match on hostname (with subdomains). 'google.*' matches google.com, google.co.in
+function hit(host, d) {
+  if (d.slice(-2) === '.*') {
+    const base = d.slice(0, -2).replace(/\./g, '\\.')
+    return new RegExp('(^|\\.)' + base + '\\.[a-z.]+$').test(host)
+  }
+  return host === d || host.endsWith('.' + d)
+}
+
+function lookup(host, map) {
+  for (const d in map) if (hit(host, d)) return map[d]
+  return null
+}
+
+// ---------- classify (first matching rule wins) ----------
+export function classify(url, referrer) {
+  const p = new URL(url).searchParams
+  const host = hostOf(referrer)
+
+  // Internal navigation: never counts (also stops hard-coded internal UTMs)
+  if (host && CONFIG.ownDomains.some(d => hit(host, d))) return null
+
+  for (const [key, label] of CONFIG.paid) {
+    if (p.get(key)) return { label, host }
+  }
+  if (p.get('utm_source')) {
+    return {
+      label: [p.get('utm_source'), p.get('utm_medium') || '(not set)', p.get('utm_campaign') || '(not set)'].join(' / '),
+      host
+    }
+  }
+  if (host) {
+    const ai = lookup(host, CONFIG.ai)
+    if (ai) return { label: 'AI-' + ai, host }
+    if (lookup(host, CONFIG.email)) return { label: 'Email', host }
+    const se = lookup(host, CONFIG.search)
+    if (se) return { label: 'Organic-' + se, host }
+    return { label: 'Referral-' + host, host }
+  }
+  return { label: 'Direct', host: '' }
+}
+
+// ---------- storage: cookie, with sessionStorage fallback ----------
+function readCookie(name) {
   const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
-  if (!m) return null
-  try { return JSON.parse(decodeURIComponent(m[1])) } catch { return null }
+  return m ? m[1] : null
 }
 
-function write(name, obj) {
-  document.cookie =
-    `${name}=${encodeURIComponent(JSON.stringify(obj))};max-age=${MAX_AGE};path=/;SameSite=Lax`
+function consentOk() {
+  return !CONFIG.consentRequired || window.ftConsent === true
 }
 
-function detectTouch() {
-  const p = new URLSearchParams(window.location.search)
-
-  let refHost = ''
-  try {
-    refHost = document.referrer ? new URL(document.referrer).hostname : ''
-  } catch { /* ignore bad referrer */ }
-
-  const internal = refHost === window.location.hostname
-  const base = { landing: window.location.pathname, ts: new Date().toISOString() }
-
-  // 1. UTM link from outside
-  if (p.get('utm_source') && !internal) {
-    return {
-      ...base,
-      source: p.get('utm_source'),
-      medium: p.get('utm_medium') || '(not set)',
-      campaign: p.get('utm_campaign') || '(not set)'
-    }
+function save(name, value) {
+  if (consentOk()) {
+    document.cookie =
+      name + '=' + value +
+      ';max-age=' + CONFIG.maxAgeDays * 86400 +
+      ';path=/;SameSite=Lax' +
+      (location.protocol === 'https:' ? ';Secure' : '') +
+      (CONFIG.rootDomain ? ';domain=.' + CONFIG.rootDomain : '')
+    if (readCookie(name)) return 'cookie'
   }
-  // 2. Search engine = organic
-  if (/google\.|bing\.|yahoo\.|duckduckgo\./.test(refHost)) {
-    return {
-      ...base,
-      source: refHost,
-      medium: 'organic',
-      campaign: 'organic - ' + window.location.pathname
-    }
-  }
-  // 3. Other website = referral
-  if (refHost && !internal) {
-    return { ...base, source: refHost, medium: 'referral', campaign: '(not set)' }
-  }
-  // 4. Nothing = direct
-  return { ...base, source: '(direct)', medium: '(none)', campaign: '(not set)' }
+  try { sessionStorage.setItem(name, value); return 'session' } catch { return 'none' }
 }
 
+function load(name) {
+  let v = readCookie(name)
+  if (!v) { try { v = sessionStorage.getItem(name) } catch { v = null } }
+  return v
+}
+
+// record = label|rawReferrerHost|landingPath|YYYY-MM-DD  (each part URL-encoded)
+function pack(label, host, landing) {
+  const day = new Date().toISOString().slice(0, 10)
+  return [label, host, landing, day].map(encodeURIComponent).join('|')
+}
+
+function unpack(v) {
+  const [label = '', host = '', landing = '', date = ''] = (v || '').split('|').map(decodeURIComponent)
+  return { label, host, landing, date }
+}
+
+// ---------- public API ----------
 export function captureAttribution() {
-  const touch = detectTouch()
+  const debug = new URLSearchParams(location.search).get('ft_debug') === '1'
+  const result = classify(location.href, document.referrer)
+  const existing = load(CONFIG.cookieFirst)
+  let action = 'skipped (internal navigation)'
 
-  // First touch: write ONE time. Never overwrite.
-  if (!read(FIRST)) write(FIRST, touch)
+  if (result) {
+    const rec = pack(result.label, result.host, location.pathname)
+    if (!existing) { action = 'first touch saved via ' + save(CONFIG.cookieFirst, rec) }
+    else { action = 'first touch kept (already set)' }
+    // Last touch: update only when the visit has a real source
+    if (result.label !== 'Direct') save(CONFIG.cookieLast, rec)
+  }
 
-  // Last touch: update only when the visit has a real source.
-  if (touch.medium !== '(none)') write(LAST, touch)
+  if (debug) {
+    console.log('[ft_debug]', {
+      url: location.href, referrer: document.referrer || '(none)',
+      decision: result ? result.label : '(internal, ignored)',
+      action, firstTouch: unpack(load(CONFIG.cookieFirst)), lastTouch: unpack(load(CONFIG.cookieLast))
+    })
+  }
 }
 
+// Returns fields ready to spread into the form payload
 export function getAttribution() {
-  const ft = read(FIRST) || {}
-  const lt = read(LAST) || ft
+  const f = unpack(load(CONFIG.cookieFirst))
+  const l = load(CONFIG.cookieLast) ? unpack(load(CONFIG.cookieLast)) : f
   return {
-    first_source: ft.source || '',
-    first_medium: ft.medium || '',
-    first_campaign: ft.campaign || '',
-    first_landing: ft.landing || '',
-    last_source: lt.source || '',
-    last_medium: lt.medium || '',
-    last_campaign: lt.campaign || ''
+    first_touch: f.label,
+    first_referrer: f.host,
+    first_landing: f.landing,
+    first_date: f.date,
+    last_touch: l.label,
+    last_referrer: l.host
   }
 }
