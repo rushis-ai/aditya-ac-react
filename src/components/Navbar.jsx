@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PHONE_TEL } from '../config/business'
 import { Link, useLocation } from 'react-router-dom'
+import Logo from './Logo'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -34,13 +35,8 @@ export default function Navbar() {
         height: 64, display: 'flex', alignItems: 'center', gap: 32
       }}>
         {/* Logo */}
-        <Link to="/" style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'var(--font-display)', fontWeight: 700,
-          fontSize: 18, color: 'var(--navy)'
-        }}>
-          <span style={{ color: 'var(--blue)', fontSize: 20 }}>❄</span>
-          Aditya AC
+        <Link to="/" aria-label="Home" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Logo size={38} />
         </Link>
 
         {/* Desktop Links */}
@@ -60,14 +56,14 @@ export default function Navbar() {
         </ul>
 
         {/* Call Button */}
-        <a href={`tel:${PHONE_TEL}`} className="btn-primary" style={{
+        <a href={`tel:${PHONE_TEL}`} className="btn-primary desktop-nav" style={{
           padding: '9px 20px', fontSize: 14
-        }} className="desktop-nav">
+        }}>
           📞 Call Now
         </a>
 
         {/* Hamburger */}
-        <button onClick={() => setMenuOpen(!menuOpen)} style={{
+        <button onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} style={{
           display: 'none', flexDirection: 'column', gap: 5,
           background: 'none', border: 'none', cursor: 'pointer',
           marginLeft: 'auto', padding: 4

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Logo from './Logo'
 
 export default function Footer() {
   return (
@@ -12,12 +13,8 @@ export default function Footer() {
         }}>
           {/* Brand */}
           <div>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              fontFamily: 'var(--font-display)', fontWeight: 700,
-              fontSize: 18, color: 'var(--white)', marginBottom: 14
-            }}>
-              <span style={{ color: 'var(--blue)' }}>❄</span> Aditya AC
+            <div style={{ marginBottom: 16 }}>
+              <Logo dark size={40} />
             </div>
             <p style={{ fontSize: 14, color: 'var(--gray-400)', lineHeight: 1.7 }}>
               From installation to repair, we keep your AC running perfectly. Serving Chandkheda, Motera & across Ahmedabad.

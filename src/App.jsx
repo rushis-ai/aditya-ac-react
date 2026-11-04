@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import WhatsAppButton from './components/WhatsAppButton'
+import PopupForm from './components/PopupForm'
 import Home from './pages/Home'
 import Services from './pages/Services'
 import Contact from './pages/Contact'
@@ -18,6 +19,7 @@ function App() {
       </Routes>
       <Footer />
       <WhatsAppButton />
+      <PopupForm />
     </BrowserRouter>
   )
 }

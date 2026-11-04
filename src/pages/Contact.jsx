@@ -1,20 +1,8 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { getAttribution } from '../utils/attribution'
-import { PHONE_DISPLAY, PHONE_TEL, WHATSAPP } from '../config/business'
+import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
+import { PHONE_DISPLAY, PHONE_TEL } from '../config/business'
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzGXRx4C-hUt-4XWPkR-wcSJXTAALEX4R2_EgLigDaZfiuPidj6-ztJv89m90rJiQ/exec'
-
-
-const SERVICES = [
-  ['ac-installation', '❄️ AC Installation'],
-  ['ac-repair', '🔧 AC Repair'],
-  ['ac-cleaning', '🧹 AC Deep Cleaning'],
-  ['gas-refill', '💨 Gas Refill'],
-  ['refrigeration', '🧊 Refrigeration Repair'],
-  ['amc', '📋 Annual Maintenance (AMC)'],
-  ['other', '💬 Other']
-]
 const TIMES = ['Morning (9 AM – 12 PM)', 'Afternoon (12 – 4 PM)', 'Evening (4 – 8 PM)', 'Anytime']
 
 const labelStyle = { fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', letterSpacing: '0.02em' }
@@ -22,22 +10,6 @@ const fieldWrap = { display: 'flex', flexDirection: 'column', gap: 8 }
 const hintStyle = { fontSize: 12, color: 'var(--gray-400)' }
 const errorStyle = { fontSize: 12, color: '#ef4444', fontWeight: 600 }
 const Req = () => <span style={{ color: '#ef4444' }} aria-hidden="true">*</span>
-
-// Accepts 9876543210, +91 98765 43210, 09876543210 -> 9876543210 (or null if invalid)
-function normalizePhone(raw) {
-  let d = raw.replace(/\D/g, '')
-  if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
-  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1)
-  return /^[6-9]\d{9}$/.test(d) ? d : null
-}
-
-function whatsappLink(d) {
-  const service = SERVICES.find(([v]) => v === d?.service)?.[1].replace(/^\S+\s/, '') || ''
-  const text = d
-    ? [`Hi, I need ${service || 'AC service'}.`, `Name: ${d.name}`, `Phone: ${d.phone}`, d.message].filter(Boolean).join('\n')
-    : 'Hi, I need AC service'
-  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`
-}
 
 export default function Contact() {
   const [status, setStatus] = useState('idle') // idle | sending | sent | failed
@@ -54,14 +26,7 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const form = e.target
-    const name = form.name.value.trim()
-    const phone = normalizePhone(form.phone.value)
-    const service = form.service.value
-
-    const errs = {}
-    if (name.length < 2) errs.name = 'Please enter your name.'
-    if (!phone) errs.phone = 'Enter a valid 10-digit mobile number.'
-    if (!service) errs.service = 'Please choose a service.'
+    const { errors: errs, values } = validateLead(form)
     setErrors(errs)
     if (Object.keys(errs).length) {
       form.elements[Object.keys(errs)[0]].focus() // first invalid field (errs is in field order)
@@ -71,31 +36,20 @@ export default function Contact() {
     const time = form.time.value
     const note = form.message.value.trim()
     const message = [time && `Preferred time: ${time}`, note].filter(Boolean).join(' | ')
-    const data = { name, phone, service, message, ...getAttribution() }
-    setLastData(data)
+    const fields = { ...values, message }
+    setLastData(fields)
 
     // Spam trap filled = bot. Pretend success, send nothing.
     if (form.website.value) { setStatus('sent'); form.reset(); return }
 
     setStatus('sending')
-    const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), 15000)
     try {
-      // no-cors: the response can't be read, but the request still rejects
-      // on network failure / timeout, which is what we catch here
-      await fetch(SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // only type allowed in no-cors
-        body: JSON.stringify(data),
-        signal: ctrl.signal
-      })
+      await submitLead(fields)
+      markLeadSent()
       setStatus('sent')
       form.reset()
     } catch {
       setStatus('failed')
-    } finally {
-      clearTimeout(timer)
     }
   }
 

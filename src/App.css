@@ -206,3 +206,54 @@ img { max-width: 100%; display: block; }
   .hero-badge-left { left: 12px; bottom: -20px; min-width: 0; }
   .hero-badge-right { right: 12px; top: -16px; }
 }
+
+/* ---------- Callback popup ---------- */
+.popup-backdrop {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(10,22,40,0.55);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.popup-card {
+  position: relative;
+  width: 100%; max-width: 420px;
+  max-height: calc(100vh - 40px); overflow-y: auto;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.popup-head {
+  display: flex; gap: 14px; align-items: center;
+  padding: 24px 52px 22px 24px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  color: var(--white);
+}
+.popup-head h2 { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+.popup-head p { font-size: 13px; color: var(--gray-400); line-height: 1.5; }
+.popup-body { display: flex; flex-direction: column; gap: 8px; padding: 22px 24px 20px; }
+.popup-body .form-field { padding: 12px 14px; }
+.popup-body label:not(:first-of-type) { margin-top: 6px; }
+.popup-prefix {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 15px; color: var(--gray-600); font-weight: 500; pointer-events: none;
+}
+.popup-close {
+  position: absolute; top: 12px; right: 12px; z-index: 1;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: rgba(255,255,255,0.12); color: var(--white);
+  font-size: 22px; line-height: 1;
+}
+.popup-close:hover { background: rgba(255,255,255,0.22); }
+.popup-alert {
+  background: #fef2f2; border: 1.5px solid #fecaca; border-radius: var(--radius);
+  padding: 10px 12px; font-size: 13px; color: #991b1b; font-weight: 600;
+}
+.popup-alert a { color: #15803d; }
+.popup-note { font-size: 12px; color: var(--gray-400); text-align: center; margin-top: 4px; }
+/* Phones: slide up from the bottom like a sheet */
+@media (max-width: 560px) {
+  .popup-backdrop { align-items: flex-end; padding: 0; }
+  .popup-card { max-width: none; border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-height: 92vh; }
+}
