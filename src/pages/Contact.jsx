@@ -4,55 +4,101 @@ import { getAttribution } from '../utils/attribution'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzGXRx4C-hUt-4XWPkR-wcSJXTAALEX4R2_EgLigDaZfiuPidj6-ztJv89m90rJiQ/exec'
 
-const inputStyle = {
-  fontFamily: 'var(--font-body)', fontSize: 15,
-  color: 'var(--gray-800)', background: 'var(--white)',
-  border: '1.5px solid var(--gray-100)',
-  borderRadius: 'var(--radius)', padding: '12px 16px',
-  outline: 'none', width: '100%'
+// Contact numbers: used everywhere on this page
+const PHONE_DISPLAY = '+91 76170 02071'
+const PHONE_TEL = '+917617002071'
+const WHATSAPP = '917617002071'
+
+const SERVICES = [
+  ['ac-installation', '❄️ AC Installation'],
+  ['ac-repair', '🔧 AC Repair'],
+  ['ac-cleaning', '🧹 AC Deep Cleaning'],
+  ['gas-refill', '💨 Gas Refill'],
+  ['refrigeration', '🧊 Refrigeration Repair'],
+  ['amc', '📋 Annual Maintenance (AMC)'],
+  ['other', '💬 Other']
+]
+const TIMES = ['Morning (9 AM – 12 PM)', 'Afternoon (12 – 4 PM)', 'Evening (4 – 8 PM)', 'Anytime']
+
+const labelStyle = { fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', letterSpacing: '0.02em' }
+const fieldWrap = { display: 'flex', flexDirection: 'column', gap: 8 }
+const hintStyle = { fontSize: 12, color: 'var(--gray-400)' }
+const errorStyle = { fontSize: 12, color: '#ef4444', fontWeight: 600 }
+const Req = () => <span style={{ color: '#ef4444' }} aria-hidden="true">*</span>
+
+// Accepts 9876543210, +91 98765 43210, 09876543210 -> 9876543210 (or null if invalid)
+function normalizePhone(raw) {
+  let d = raw.replace(/\D/g, '')
+  if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1)
+  return /^[6-9]\d{9}$/.test(d) ? d : null
 }
 
-const labelStyle = {
-  fontSize: 13, fontWeight: 600, color: 'var(--gray-800)'
+function whatsappLink(d) {
+  const service = SERVICES.find(([v]) => v === d?.service)?.[1].replace(/^\S+\s/, '') || ''
+  const text = d
+    ? [`Hi, I need ${service || 'AC service'}.`, `Name: ${d.name}`, `Phone: ${d.phone}`, d.message].filter(Boolean).join('\n')
+    : 'Hi, I need AC service'
+  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`
 }
 
 export default function Contact() {
-  const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState('idle') // idle | sending | sent | failed
+  const [errors, setErrors] = useState({})
+  const [lastData, setLastData] = useState(null)
 
   useEffect(() => {
     document.title = 'Contact Us | Aditya Air Conditioning & Refrigeration Services'
     document.querySelector('meta[name="description"]')?.setAttribute('content', 'Need AC or refrigeration services in Chandkheda, Motera, Ahmedabad? Contact Aditya Air Conditioning & Refrigeration Services for expert assistance.')
   }, [])
-  
- const handleSubmit = async (e) => {
+
+  const clearError = (field) => setErrors(prev => (prev[field] ? { ...prev, [field]: undefined } : prev))
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
     const form = e.target
-    const data = {
-      name: form.name.value,
-      phone: form.phone.value,
-      service: form.service.value,
-      message: '',
-      ...getAttribution()
+    const name = form.name.value.trim()
+    const phone = normalizePhone(form.phone.value)
+    const service = form.service.value
+
+    const errs = {}
+    if (name.length < 2) errs.name = 'Please enter your name.'
+    if (!phone) errs.phone = 'Enter a valid 10-digit mobile number.'
+    if (!service) errs.service = 'Please choose a service.'
+    setErrors(errs)
+    if (Object.keys(errs).length) {
+      form.elements[Object.keys(errs)[0]].focus() // first invalid field (errs is in field order)
+      return
     }
+
+    const time = form.time.value
+    const note = form.message.value.trim()
+    const message = [time && `Preferred time: ${time}`, note].filter(Boolean).join(' | ')
+    const data = { name, phone, service, message, ...getAttribution() }
+    setLastData(data)
+
+    // Spam trap filled = bot. Pretend success, send nothing.
+    if (form.website.value) { setStatus('sent'); form.reset(); return }
+
+    setStatus('sending')
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 15000)
     try {
-      fetch(SHEET_URL, {
+      // no-cors: the response can't be read, but the request still rejects
+      // on network failure / timeout, which is what we catch here
+      await fetch(SHEET_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // only type allowed in no-cors
+        body: JSON.stringify(data),
+        signal: ctrl.signal
       })
-      // no-cors never returns a readable response
-      // so we show success immediately after sending
-      setTimeout(() => {
-        setLoading(false)
-        setSubmitted(true)
-        form.reset()
-      }, 1500)
+      setStatus('sent')
+      form.reset()
     } catch {
-      setLoading(false)
-      alert('Something went wrong. Please call us directly.')
+      setStatus('failed')
+    } finally {
+      clearTimeout(timer)
     }
   }
 
@@ -99,8 +145,8 @@ export default function Contact() {
             gap: 16
           }}>
             {[
-              { icon: '📞', title: 'Call Us', info: '+91 XXXXXXXXXX', action: 'Tap to Call', href: 'tel:+919999999999', color: 'var(--blue)' },
-              { icon: '💬', title: 'WhatsApp', info: '+91 XXXXXXXXXX', action: 'Chat Now', href: 'https://wa.me/919999999999', color: '#25D366' },
+              { icon: '📞', title: 'Call Us', info: PHONE_DISPLAY, action: 'Tap to Call', href: `tel:${PHONE_TEL}`, color: 'var(--blue)' },
+              { icon: '💬', title: 'WhatsApp', info: PHONE_DISPLAY, action: 'Chat Now', href: whatsappLink(), color: '#25D366' },
               { icon: '🕐', title: 'Business Hours', info: 'Open Every Day', action: 'Closes 11:30 PM', href: null, color: '#f59e0b' },
             ].map((card, i) => (
               <motion.a
@@ -167,10 +213,11 @@ export default function Contact() {
                 Fill in the details and we'll contact you to confirm your appointment.
               </p>
 
-              {submitted ? (
+              {status === 'sent' ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
+                  role="status"
                   style={{
                     background: '#f0fdf4',
                     border: '1.5px solid #bbf7d0',
@@ -188,7 +235,7 @@ export default function Contact() {
                     We'll contact you shortly to confirm your appointment.
                   </p>
                   <button
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => setStatus('idle')}
                     style={{
                       marginTop: 20, background: 'none',
                       border: 'none', color: 'var(--blue)',
@@ -197,43 +244,53 @@ export default function Contact() {
                   >Submit another request</button>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                  {status === 'failed' && (
+                    <div role="alert" style={{
+                      background: '#fef2f2', border: '1.5px solid #fecaca',
+                      borderRadius: 'var(--radius)', padding: '16px 18px'
+                    }}>
+                      <p style={{ fontSize: 14, color: '#991b1b', fontWeight: 600, marginBottom: 10 }}>
+                        Couldn't send your request. Check your connection and try again, or send it on WhatsApp.
+                      </p>
+                      <a
+                        href={whatsappLink(lastData)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: 14, fontWeight: 700, color: '#15803d' }}
+                      >💬 Send these details on WhatsApp</a>
+                    </div>
+                  )}
+
+                  {/* Spam trap: humans never see or fill this */}
+                  <div className="hp-field" aria-hidden="true">
+                    <label htmlFor="website">Website</label>
+                    <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+                  </div>
 
                   {/* Name */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', letterSpacing: '0.02em' }}>
-                      Full Name <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
+                  <div style={fieldWrap}>
+                    <label htmlFor="name" style={labelStyle}>Full Name <Req /></label>
                     <input
+                      className="form-field"
                       type="text"
                       id="name"
                       name="name"
                       placeholder="e.g. Rahul Shah"
+                      autoComplete="name"
+                      autoCapitalize="words"
                       required
-                      style={{
-                        fontFamily: 'var(--font-body)', fontSize: 15,
-                        color: 'var(--gray-800)', background: 'var(--white)',
-                        border: '1.5px solid var(--gray-100)',
-                        borderRadius: 'var(--radius)', padding: '14px 16px',
-                        outline: 'none', width: '100%',
-                        transition: 'border-color 0.2s, box-shadow 0.2s'
-                      }}
-                      onFocus={e => {
-                        e.target.style.borderColor = 'var(--blue)'
-                        e.target.style.boxShadow = '0 0 0 3px rgba(26,86,219,0.1)'
-                      }}
-                      onBlur={e => {
-                        e.target.style.borderColor = 'var(--gray-100)'
-                        e.target.style.boxShadow = 'none'
-                      }}
+                      aria-invalid={!!errors.name}
+                      aria-describedby={errors.name ? 'name-error' : undefined}
+                      onInput={() => clearError('name')}
                     />
+                    {errors.name && <span id="name-error" style={errorStyle}>{errors.name}</span>}
                   </div>
 
                   {/* Phone */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', letterSpacing: '0.02em' }}>
-                      Phone Number <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
+                  <div style={fieldWrap}>
+                    <label htmlFor="phone" style={labelStyle}>Phone Number <Req /></label>
                     <div style={{ position: 'relative' }}>
                       <span style={{
                         position: 'absolute', left: 14, top: '50%',
@@ -242,95 +299,75 @@ export default function Contact() {
                         fontWeight: 500, pointerEvents: 'none'
                       }}>+91</span>
                       <input
+                        className="form-field"
                         type="tel"
                         id="phone"
                         name="phone"
                         placeholder="98765 43210"
+                        autoComplete="tel"
+                        inputMode="tel"
+                        maxLength={16}
                         required
-                        style={{
-                          fontFamily: 'var(--font-body)', fontSize: 15,
-                          color: 'var(--gray-800)', background: 'var(--white)',
-                          border: '1.5px solid var(--gray-100)',
-                          borderRadius: 'var(--radius)', padding: '14px 16px 14px 48px',
-                          outline: 'none', width: '100%',
-                          transition: 'border-color 0.2s, box-shadow 0.2s'
-                        }}
-                        onFocus={e => {
-                          e.target.style.borderColor = 'var(--blue)'
-                          e.target.style.boxShadow = '0 0 0 3px rgba(26,86,219,0.1)'
-                        }}
-                        onBlur={e => {
-                          e.target.style.borderColor = 'var(--gray-100)'
-                          e.target.style.boxShadow = 'none'
-                        }}
+                        aria-invalid={!!errors.phone}
+                        aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'}
+                        onInput={() => clearError('phone')}
+                        style={{ paddingLeft: 48 }}
                       />
                     </div>
-                    <span style={{ fontSize: 12, color: 'var(--gray-400)' }}>
-                      Also accepts: +91 98765 43210 or 09876543210
-                    </span>
+                    {errors.phone
+                      ? <span id="phone-error" style={errorStyle}>{errors.phone}</span>
+                      : <span id="phone-hint" style={hintStyle}>Also accepts: +91 98765 43210 or 09876543210</span>}
                   </div>
 
                   {/* Service */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', letterSpacing: '0.02em' }}>
-                      Service Required <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
+                  <div style={fieldWrap}>
+                    <label htmlFor="service" style={labelStyle}>Service Required <Req /></label>
                     <select
+                      className="form-field form-select"
+                      id="service"
                       name="service"
                       required
                       defaultValue=""
-                      style={{
-                        fontFamily: 'var(--font-body)', fontSize: 15,
-                        color: 'var(--gray-800)', background: 'var(--white)',
-                        border: '1.5px solid var(--gray-100)',
-                        borderRadius: 'var(--radius)', padding: '14px 16px',
-                        outline: 'none', width: '100%',
-                        cursor: 'pointer',
-                        transition: 'border-color 0.2s, box-shadow 0.2s',
-                        appearance: 'none',
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 16px center'
-                      }}
-                      onFocus={e => {
-                        e.target.style.borderColor = 'var(--blue)'
-                        e.target.style.boxShadow = '0 0 0 3px rgba(26,86,219,0.1)'
-                      }}
-                      onBlur={e => {
-                        e.target.style.borderColor = 'var(--gray-100)'
-                        e.target.style.boxShadow = 'none'
-                      }}
+                      aria-invalid={!!errors.service}
+                      aria-describedby={errors.service ? 'service-error' : undefined}
+                      onChange={() => clearError('service')}
                     >
                       <option value="" disabled>Select a service...</option>
-                      <option value="ac-installation">❄️ AC Installation</option>
-                      <option value="ac-repair">🔧 AC Repair</option>
-                      <option value="ac-cleaning">🧹 AC Deep Cleaning</option>
-                      <option value="gas-refill">💨 Gas Refill</option>
-                      <option value="refrigeration">🧊 Refrigeration Repair</option>
-                      <option value="amc">📋 Annual Maintenance (AMC)</option>
-                      <option value="other">💬 Other</option>
+                      {SERVICES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    </select>
+                    {errors.service && <span id="service-error" style={errorStyle}>{errors.service}</span>}
+                  </div>
+
+                  {/* Preferred time (optional) */}
+                  <div style={fieldWrap}>
+                    <label htmlFor="time" style={labelStyle}>
+                      Preferred Time <span style={{ fontWeight: 500, color: 'var(--gray-400)' }}>(optional)</span>
+                    </label>
+                    <select className="form-field form-select" id="time" name="time" defaultValue="">
+                      <option value="">No preference</option>
+                      {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
 
+                  {/* Message (optional) */}
+                  <div style={fieldWrap}>
+                    <label htmlFor="message" style={labelStyle}>
+                      Area / Details <span style={{ fontWeight: 500, color: 'var(--gray-400)' }}>(optional)</span>
+                    </label>
+                    <textarea
+                      className="form-field"
+                      id="message"
+                      name="message"
+                      rows={3}
+                      maxLength={500}
+                      placeholder="Your area, AC brand, or the problem you're facing"
+                      style={{ resize: 'vertical' }}
+                    />
+                  </div>
+
                   {/* Submit */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{
-                      width: '100%', padding: '16px',
-                      fontSize: 16, fontWeight: 700,
-                      fontFamily: 'var(--font-display)',
-                      background: loading ? 'var(--gray-400)' : 'var(--blue)',
-                      color: 'white', border: 'none',
-                      borderRadius: 'var(--radius)',
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      transition: 'background 0.2s',
-                      marginTop: 4
-                    }}
-                    onMouseEnter={e => { if (!loading) e.target.style.background = 'var(--blue-light)' }}
-                    onMouseLeave={e => { if (!loading) e.target.style.background = 'var(--blue)' }}
-                  >
-                    {loading ? '⏳ Sending...' : '📩 Send Request'}
+                  <button type="submit" className="form-submit" disabled={status === 'sending'}>
+                    {status === 'sending' ? '⏳ Sending...' : '📩 Send Request'}
                   </button>
 
                   <p style={{ fontSize: 13, color: 'var(--gray-400)', textAlign: 'center', marginTop: -8 }}>
@@ -349,8 +386,7 @@ export default function Contact() {
               style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
             >
               {[
-                { title: '📍 Our Location', content: 'Shop no.10, Vitthal Mall, New CG Rd, near ONGC Circle, Chandkheda, Ahmedabad 380005' },
-                { title: '⏰ Working Hours', content: 'Open Every Day · Closes 11:30 PM' },
+                { title: '📍 Our Location', content: 'Shop no.10, Vitthal Mall, New CG Rd, near ONGC Circle, Chandkheda, Ahmedabad 382424' },
               ].map((block, i) => (
                 <div key={i} style={{
                   background: 'var(--gray-50)',
@@ -376,7 +412,7 @@ export default function Contact() {
                 boxShadow: 'var(--shadow)'
               }}>
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3669.5!2d72.5945!3d23.0927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDA1JzMzLjciTiA3MsKwMzUnMzQuMiJF!5e0!3m2!1sen!2sin!4v1234567890"
+                  src="https://maps.google.com/maps?q=23.1065567,72.5979062&z=17&output=embed"
                   width="100%"
                   height="260"
                   style={{ border: 0, display: 'block' }}
@@ -388,7 +424,7 @@ export default function Contact() {
 
               {/* WhatsApp CTA */}
               <a
-                href="https://wa.me/919999999999?text=Hi%2C%20I%20need%20AC%20service"
+                href={whatsappLink()}
                 target="_blank"
                 rel="noreferrer"
                 style={{

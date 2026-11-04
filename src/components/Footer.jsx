@@ -53,7 +53,7 @@ export default function Footer() {
             <p style={{ fontSize: 14, color: 'var(--gray-400)', lineHeight: 1.7, marginBottom: 8 }}>
               Shop no.10, Vitthal Mall<br />
               New CG Rd, near ONGC Circle<br />
-              Chandkheda, Ahmedabad 380005
+              Chandkheda, Ahmedabad 382424
             </p>
             <p style={{ fontSize: 14, color: 'var(--gray-400)' }}>Open · Closes 11:30 PM</p>
           </div>

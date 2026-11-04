@@ -58,8 +58,9 @@ export function classify(url, referrer) {
   // Internal navigation: never counts (also stops hard-coded internal UTMs)
   if (host && CONFIG.ownDomains.some(d => hit(host, d))) return null
 
+  // Paid click: keep the ad campaign name too, if the ad URL carries one
   for (const [key, label] of CONFIG.paid) {
-    if (p.get(key)) return { label, host }
+    if (p.get(key)) return { label: p.get('utm_campaign') ? label + ' / ' + p.get('utm_campaign') : label, host }
   }
   if (p.get('utm_source')) {
     return {
@@ -107,10 +108,15 @@ function load(name) {
   return v
 }
 
+// Visitor's local date as YYYY-MM-DD (toISOString would give the UTC date)
+function today() {
+  const d = new Date()
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+}
+
 // record = label|rawReferrerHost|landingPath|YYYY-MM-DD  (each part URL-encoded)
 function pack(label, host, landing) {
-  const day = new Date().toISOString().slice(0, 10)
-  return [label, host, landing, day].map(encodeURIComponent).join('|')
+  return [label, host, landing, today()].map(encodeURIComponent).join('|')
 }
 
 function unpack(v) {
@@ -142,14 +148,48 @@ export function captureAttribution() {
   }
 }
 
+// Split a stored label into source / medium / campaign for the Sheet
+const PAID_SOURCE = { Google: 'google', Meta: 'facebook', Microsoft: 'bing' }
+function toSheet({ label, host }) {
+  const NS = '(not set)'
+  if (!label || label === 'Direct' || label === 'Unknown') {
+    return { source: label === 'Unknown' ? '(unknown)' : '(direct)', medium: '(none)', campaign: NS }
+  }
+  const paid = label.match(/^Paid-(\w+)(?: \/ (.*))?$/)
+  if (paid) return { source: PAID_SOURCE[paid[1]] || paid[1].toLowerCase(), medium: 'cpc', campaign: paid[2] || NS }
+  const kinds = [['AI-', 'ai'], ['Organic-', 'organic'], ['Referral-', 'referral']]
+  for (const [prefix, medium] of kinds) {
+    if (label.startsWith(prefix)) return { source: host || label.slice(prefix.length), medium, campaign: NS }
+  }
+  if (label === 'Email') return { source: host, medium: 'email', campaign: NS }
+  // UTM label: "source / medium / campaign"
+  const [source, medium = NS, ...rest] = label.split(' / ')
+  return { source, medium, campaign: rest.join(' / ') || NS }
+}
+
 // Returns fields ready to spread into the form payload
 export function getAttribution() {
-  const f = unpack(load(CONFIG.cookieFirst))
+  let f = unpack(load(CONFIG.cookieFirst))
+  // Nothing stored (storage blocked/cleared): classify this page instead of sending blank
+  if (!f.label) {
+    const r = classify(location.href, document.referrer)
+    f = r ? { label: r.label, host: r.host, landing: location.pathname, date: today() }
+          : { label: 'Unknown', host: '', landing: '', date: '' }
+  }
   const l = load(CONFIG.cookieLast) ? unpack(load(CONFIG.cookieLast)) : f
+  const fs = toSheet(f), ls = toSheet(l)
   return {
+    // Columns the Sheet script writes
+    first_source: fs.source,
+    first_medium: fs.medium,
+    first_campaign: fs.campaign,
+    first_landing: f.landing,
+    last_source: ls.source,
+    last_medium: ls.medium,
+    last_campaign: ls.campaign,
+    // Extra detail (ignored by the Sheet unless a column is added for it)
     first_touch: f.label,
     first_referrer: f.host,
-    first_landing: f.landing,
     first_date: f.date,
     last_touch: l.label,
     last_referrer: l.host
