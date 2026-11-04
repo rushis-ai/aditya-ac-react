@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
-import { PHONE_DISPLAY, PHONE_TEL } from '../config/business'
-import { Clock, CircleCheck, LoaderCircle, Lock, MapPin, Phone, Send } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_TEL, RATING, REVIEWS_URL } from '../config/business'
+import { useOpenNow, OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
+import { ArrowRight, CalendarCheck, CircleCheck, ShieldCheck, Star, Wrench, Zap, LoaderCircle, Lock, MapPin, Phone, Send } from 'lucide-react'
 import { IconTile, InlineIcon, WhatsAppIcon } from '../components/Icons'
 
 const TIMES = ['Morning (9 AM – 12 PM)', 'Afternoon (12 – 4 PM)', 'Evening (4 – 8 PM)', 'Anytime']
@@ -17,6 +18,14 @@ export default function Contact() {
   const [status, setStatus] = useState('idle') // idle | sending | sent | failed
   const [errors, setErrors] = useState({})
   const [lastData, setLastData] = useState(null)
+  const open = useOpenNow()
+
+  // "Book Online" card: smooth-scroll to the form and put the cursor in the first field
+  const scrollToForm = (e) => {
+    e.preventDefault()
+    document.getElementById('book')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => document.getElementById('name')?.focus({ preventScroll: true }), 500)
+  }
 
   useEffect(() => {
     document.title = 'Contact Us | Aditya Air Conditioning & Refrigeration Services'
@@ -59,13 +68,7 @@ export default function Contact() {
     <div style={{ paddingTop: 64 }}>
 
       {/* Page Header */}
-      <section style={{
-        background: 'var(--navy)',
-        padding: '80px 24px 64px',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
+      <section className="ct-hero">
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
           <div style={{
             position: 'absolute', width: 400, height: 400,
@@ -73,63 +76,59 @@ export default function Contact() {
             opacity: 0.06, top: -150, right: -80
           }} />
         </div>
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-          <span className="section-tag" style={{ color: 'var(--accent)' }}>Get In Touch</span>
-          <h1 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(36px, 5vw, 58px)',
-            fontWeight: 700, color: 'var(--white)', marginBottom: 14
-          }}>Contact Us</h1>
-          <p style={{
-            fontSize: 17, color: 'var(--gray-400)',
-            maxWidth: 480, margin: '0 auto', lineHeight: 1.7
-          }}>
-            Call, WhatsApp, or fill in the form — we'll get back to you quickly.
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} style={{ position: 'relative' }}>
+          <span className={`ct-status ${open ? 'is-open' : ''}`}>
+            <span className="ct-status-dot" aria-hidden="true" />
+            {open ? `Open now · until ${CLOSES_TEXT}` : `Closed now · opens ${OPENS_TEXT}`}
+          </span>
+          <h1>Get Your AC Sorted</h1>
+          <p className="ct-hero-sub">
+            Call or WhatsApp for urgent repairs, or book a visit below and we'll call you to confirm a time.
           </p>
+          <ul className="ct-chips">
+            <li>
+              <a href={REVIEWS_URL} target="_blank" rel="noreferrer">
+                <Star size={14} fill="#f59e0b" color="#f59e0b" aria-hidden="true" /> {RATING} on Google
+              </a>
+            </li>
+            <li><InlineIcon icon={Zap} size={14} /> Same-day visits</li>
+            <li><InlineIcon icon={Wrench} size={14} /> All AC brands</li>
+            <li><InlineIcon icon={ShieldCheck} size={14} /> Genuine parts</li>
+          </ul>
         </motion.div>
       </section>
 
-      {/* Quick Contact Cards */}
-      <section className="section" style={{ background: 'var(--gray-50)' }}>
+      {/* Ways to reach us: each card says when to use it */}
+      <section className="ct-ways">
         <div className="container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 16
-          }}>
+          <div className="ct-ways-grid">
             {[
-              { icon: Phone, title: 'Call Us', info: PHONE_DISPLAY, action: 'Tap to Call', href: `tel:${PHONE_TEL}`, color: 'var(--blue)' },
-              { icon: WhatsAppIcon, title: 'WhatsApp', info: PHONE_DISPLAY, action: 'Chat Now', href: whatsappLink(), color: '#25D366' },
-              { icon: Clock, title: 'Business Hours', info: 'Open Every Day', action: 'Closes 11:30 PM', href: null, color: '#f59e0b' },
+              { icon: Phone, title: 'Call Us', note: 'Fastest for urgent breakdowns', info: PHONE_DISPLAY, action: 'Tap to call', href: `tel:${PHONE_TEL}`, color: 'var(--blue)' },
+              { icon: WhatsAppIcon, title: 'WhatsApp', note: 'Send a photo or video of the problem', info: PHONE_DISPLAY, action: 'Chat now', href: whatsappLink(), color: '#16a34a' },
+              { icon: CalendarCheck, title: 'Book Online', note: open ? 'We call back to confirm a time' : `We'll call after ${OPENS_TEXT}`, info: 'Takes 30 seconds', action: 'Fill the form', href: '#book', color: '#f59e0b' },
             ].map((card, i) => (
               <motion.a
-                key={i}
-                href={card.href || undefined}
-                target={card.href?.startsWith('http') ? '_blank' : undefined}
-                rel="noreferrer"
+                key={card.title}
+                className="ct-way"
+                href={card.href}
+                target={card.href.startsWith('http') ? '_blank' : undefined}
+                rel={card.href.startsWith('http') ? 'noreferrer' : undefined}
+                onClick={card.href === '#book' ? scrollToForm : undefined}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={card.href ? { y: -3 } : {}}
-                style={{
-                  background: 'var(--white)',
-                  border: '1.5px solid var(--gray-100)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '28px 20px',
-                  textAlign: 'center',
-                  display: 'block',
-                  cursor: card.href ? 'pointer' : 'default',
-                  textDecoration: 'none'
-                }}
+                whileHover={{ y: -3 }}
               >
-                <IconTile icon={card.icon} color={card.color} style={{ margin: '0 auto 14px' }} />
-                <h4 style={{
-                  fontFamily: 'var(--font-display)', fontSize: 15,
-                  fontWeight: 700, color: 'var(--navy)', marginBottom: 6
-                }}>{card.title}</h4>
-                <p style={{ fontSize: 14, color: 'var(--gray-600)', marginBottom: 10 }}>{card.info}</p>
-                <span style={{ fontSize: 13, fontWeight: 600, color: card.color }}>{card.action}</span>
+                <IconTile icon={card.icon} color={card.color} />
+                <span className="ct-way-text">
+                  <strong>{card.title}</strong>
+                  <span className="ct-way-note">{card.note}</span>
+                  <span className="ct-way-info">{card.info}</span>
+                </span>
+                <span className="ct-way-action" style={{ color: card.color }}>
+                  {card.action} <InlineIcon icon={ArrowRight} size={14} />
+                </span>
               </motion.a>
             ))}
           </div>
@@ -137,7 +136,7 @@ export default function Contact() {
       </section>
 
       {/* Form + Info */}
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section id="book" className="section" style={{ paddingTop: 56, scrollMarginTop: 64 }}>
         <div className="container">
           <div style={{
             display: 'grid',
@@ -155,9 +154,21 @@ export default function Contact() {
                 fontFamily: 'var(--font-display)', fontSize: 28,
                 fontWeight: 700, color: 'var(--navy)', marginBottom: 8
               }}>Book a Service</h2>
-              <p style={{ fontSize: 15, color: 'var(--gray-600)', marginBottom: 32, lineHeight: 1.6 }}>
-                Fill in the details and we'll contact you to confirm your appointment.
+              <p style={{ fontSize: 15, color: 'var(--gray-600)', marginBottom: 20, lineHeight: 1.6 }}>
+                No charges to book. You'll know the cost before any work starts.
               </p>
+              <ol className="ct-steps">
+                {[
+                  ['Send your details', 'Takes 30 seconds'],
+                  ['We call you', 'To confirm a time that suits you'],
+                  ['Technician visits', 'Diagnoses and quotes before starting']
+                ].map(([title, text], i) => (
+                  <li key={title}>
+                    <span className="ct-step-num">{i + 1}</span>
+                    <span><strong>{title}</strong><small>{text}</small></span>
+                  </li>
+                ))}
+              </ol>
 
               {status === 'sent' ? (
                 <motion.div

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Snowflake, Fan, Clock } from 'lucide-react'
-import { TIMEZONE, OPENS, CLOSES } from '../config/business'
+import { useOpenNow, OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
 
 // Illustrated hero: an indoor AC unit blowing cool air while the room temperature drops.
 // Pure SVG/CSS, so it weighs a few KB instead of a photo's hundreds.
@@ -11,17 +11,6 @@ const END_TEMP = 24
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-
-// Is the business open right now, in its own time zone?
-function openNow() {
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-    .formatToParts(new Date())
-  const h = Number(parts.find(p => p.type === 'hour').value)
-  const m = Number(parts.find(p => p.type === 'minute').value)
-  const now = h * 60 + m
-  return now >= OPENS.h * 60 + OPENS.m && now < CLOSES.h * 60 + CLOSES.m
-}
-const fmt = ({ h, m }) => `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h < 12 ? 'AM' : 'PM'}`
 
 function useCoolDown() {
   const [temp, setTemp] = useState(() => (reducedMotion() ? END_TEMP : START_TEMP))
@@ -39,15 +28,6 @@ function useCoolDown() {
     return () => { clearTimeout(start); clearInterval(iv) }
   }, [])
   return temp
-}
-
-function useOpen() {
-  const [open, setOpen] = useState(openNow)
-  useEffect(() => {
-    const iv = setInterval(() => setOpen(openNow()), 60000)
-    return () => clearInterval(iv)
-  }, [])
-  return open
 }
 
 function AcUnit({ temp }) {
@@ -114,7 +94,7 @@ const FLAKES = [
 
 export default function HeroVisual() {
   const temp = useCoolDown()
-  const open = useOpen()
+  const open = useOpenNow()
   const progress = (START_TEMP - temp) / (START_TEMP - END_TEMP)
 
   return (
@@ -159,7 +139,7 @@ export default function HeroVisual() {
           : <Clock size={18} aria-hidden="true" style={{ color: '#f59e0b', flexShrink: 0 }} />}
         <span>
           <strong>{open ? 'Open now · Same-day visits' : 'Closed now'}</strong>
-          <small>{open ? `Book before ${fmt(CLOSES)}` : `Opens at ${fmt(OPENS)} · Book online anytime`}</small>
+          <small>{open ? `Book before ${CLOSES_TEXT}` : `Opens at ${OPENS_TEXT} · Book online anytime`}</small>
         </span>
       </motion.div>
     </div>
