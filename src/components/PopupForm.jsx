@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LogoMark } from './Logo'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
+import { CircleCheck, LoaderCircle, Lock, Phone } from 'lucide-react'
+import { IconTile, InlineIcon } from './Icons'
 
 // When the callback popup appears
 const RULES = {
@@ -149,7 +151,7 @@ export default function PopupForm() {
 
             {status === 'sent' ? (
               <div className="popup-body" role="status" style={{ textAlign: 'center', padding: '32px 24px' }}>
-                <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
+                <IconTile icon={CircleCheck} color="#16a34a" size={60} radius={30} style={{ marginBottom: 12 }} />
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--navy)', marginBottom: 6 }}>
                   Got it!
                 </h3>
@@ -206,9 +208,11 @@ export default function PopupForm() {
                 {errors.service && <span id="pp-service-error" style={errorStyle}>{errors.service}</span>}
 
                 <button type="submit" className="form-submit" disabled={status === 'sending'} style={{ marginTop: 8 }}>
-                  {status === 'sending' ? '⏳ Sending...' : '📞 Get a Call Back'}
+                  {status === 'sending'
+                    ? <><InlineIcon icon={LoaderCircle} className="spin" /> Sending...</>
+                    : <><InlineIcon icon={Phone} /> Get a Call Back</>}
                 </button>
-                <p className="popup-note">🔒 We only use your number to call you about this request.</p>
+                <p className="popup-note"><InlineIcon icon={Lock} size={12} style={{ verticalAlign: -1 }} /> We only use your number to call you about this request.</p>
               </form>
             )}
           </motion.div>

@@ -2,31 +2,33 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import CTABanner from '../components/CTABanner'
 import { useEffect } from 'react'
+import { Check, ClipboardCheck, Refrigerator, Snowflake, Sparkles, Wrench } from 'lucide-react'
+import { IconTile, InlineIcon } from '../components/Icons'
 
 
 const services = [
   {
-    icon: '❄️', title: 'AC Installation',
+    icon: Snowflake, title: 'AC Installation',
     desc: 'Professional installation of all types of air conditioners for homes, offices, and commercial spaces.',
     points: ['Split AC installation', 'Window AC installation', 'Cassette & ceiling AC', 'Copper pipe fitting & wiring']
   },
   {
-    icon: '🔧', title: 'AC Repair & Service',
+    icon: Wrench, title: 'AC Repair & Service',
     desc: 'Fast diagnosis and repair for all AC problems with genuine spare parts and same-day service.',
     points: ['Gas (refrigerant) refill', 'Compressor repair', 'PCB / circuit board repair', 'Water leakage fix']
   },
   {
-    icon: '🧹', title: 'AC Deep Cleaning',
+    icon: Sparkles, title: 'AC Deep Cleaning',
     desc: 'Restore your AC to peak performance and improve air quality with our deep cleaning service.',
     points: ['Filter cleaning', 'Coil & fin cleaning', 'Drain pan flushing', 'Anti-bacterial treatment']
   },
   {
-    icon: '🧊', title: 'Refrigeration',
+    icon: Refrigerator, title: 'Refrigeration',
     desc: 'Expert repair and maintenance for domestic and commercial refrigeration systems.',
     points: ['Domestic fridge repair', 'Cold storage maintenance', 'Deep freezer repair', 'Gas charging']
   },
   {
-    icon: '📋', title: 'Annual Maintenance (AMC)',
+    icon: ClipboardCheck, title: 'Annual Maintenance (AMC)',
     desc: 'Protect your AC investment with scheduled servicing and priority response plans.',
     points: ['2 or 4 services/year', 'Priority response', 'Parts discount', 'Hassle-free plan']
   },
@@ -78,7 +80,7 @@ useEffect(() => {
                 gap: 32, padding: '48px 0',
                 borderBottom: i < services.length - 1 ? '1px solid var(--gray-100)' : 'none'
               }}>
-                <div style={{ fontSize: 48 }}>{s.icon}</div>
+                <IconTile icon={s.icon} size={68} radius={18} />
                 <div>
                   <h2 style={{
                     fontFamily: 'var(--font-display)', fontSize: 26,
@@ -94,7 +96,9 @@ useEffect(() => {
                     gap: '8px 24px', marginBottom: 28
                   }}>
                     {s.points.map((p, j) => (
-                      <span key={j} style={{ fontSize: 14, color: 'var(--gray-600)' }}>✔ {p}</span>
+                      <span key={j} style={{ fontSize: 14, color: 'var(--gray-600)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <InlineIcon icon={Check} size={16} style={{ color: '#16a34a' }} />{p}
+                      </span>
                     ))}
                   </div>
                   <Link to="/contact" className="btn-primary">Book Service</Link>

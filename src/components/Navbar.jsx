@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { PHONE_TEL } from '../config/business'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
+import { Phone } from 'lucide-react'
+import { InlineIcon } from './Icons'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -59,7 +61,7 @@ export default function Navbar() {
         <a href={`tel:${PHONE_TEL}`} className="btn-primary desktop-nav" style={{
           padding: '9px 20px', fontSize: 14
         }}>
-          📞 Call Now
+          <InlineIcon icon={Phone} size={17} /> Call Now
         </a>
 
         {/* Hamburger */}
@@ -90,7 +92,7 @@ export default function Navbar() {
             }}>{label}</Link>
           ))}
           <a href={`tel:${PHONE_TEL}`} className="btn-primary" style={{ textAlign: 'center' }}>
-            📞 Call Now
+            <InlineIcon icon={Phone} size={17} /> Call Now
           </a>
         </div>
       )}

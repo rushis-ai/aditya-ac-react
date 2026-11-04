@@ -1,19 +1,18 @@
 import { motion } from 'framer-motion'
 import { RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
+import { Star } from 'lucide-react'
+import { Stars } from './Icons'
 
 const reviews = [
   {
-    stars: '⭐⭐⭐⭐⭐',
     text: 'Very professional and fast service. My AC was fixed within an hour of calling. Highly recommend!',
     name: 'Rajesh P.'
   },
   {
-    stars: '⭐⭐⭐⭐⭐',
     text: 'Best AC service in Chandkheda. Honest pricing and genuine parts. Won\'t go anywhere else.',
     name: 'Priya M.'
   },
   {
-    stars: '⭐⭐⭐⭐⭐',
     text: 'Called late evening and they still came and serviced my AC. Great work and very polite staff.',
     name: 'Suresh K.'
   },
@@ -48,7 +47,7 @@ export default function Testimonials() {
                 boxShadow: 'var(--shadow)'
               }}
             >
-              <div style={{ fontSize: 16, marginBottom: 14 }}>{r.stars}</div>
+              <div style={{ marginBottom: 14 }}><Stars /></div>
               <p style={{
                 fontSize: 15, color: 'var(--gray-600)',
                 lineHeight: 1.7, marginBottom: 16,
@@ -68,7 +67,7 @@ export default function Testimonials() {
             fontSize: 18, fontWeight: 700,
             color: 'var(--navy)', textDecoration: 'none'
           }}>
-            ⭐ {RATING} on Google · {REVIEW_COUNT} Reviews · <span style={{ color: 'var(--blue)' }}>Read all →</span>
+            <Star size={18} fill="#f59e0b" color="#f59e0b" aria-hidden="true" style={{ verticalAlign: -2 }} /> {RATING} on Google · {REVIEW_COUNT} Reviews · <span style={{ color: 'var(--blue)' }}>Read all →</span>
           </a>
         </div>
       </div>

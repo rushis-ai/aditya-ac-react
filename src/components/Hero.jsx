@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import heroImg from '../assets/wireman-dissasembling-air-conditioner.webp'
 import { PHONE_TEL, RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
+import { Phone, Star, Zap } from 'lucide-react'
+import { IconTile, InlineIcon } from './Icons'
 
 export default function Hero() {
   return (
@@ -46,7 +48,7 @@ export default function Hero() {
             letterSpacing: '0.02em',
             textDecoration: 'none'
           }}>
-          ⭐ {RATING} on Google · {REVIEW_COUNT} Reviews
+          <Star size={14} fill="#f59e0b" color="#f59e0b" aria-hidden="true" /> {RATING} on Google · {REVIEW_COUNT} Reviews
         </motion.a>
 
         {/* Heading */}
@@ -82,9 +84,8 @@ export default function Hero() {
           display: 'flex', gap: 14,
           flexWrap: 'wrap', marginBottom: 52
         }}>
-          <a href={`tel:${PHONE_TEL}`} className="btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            📞 Call Now
+          <a href={`tel:${PHONE_TEL}`} className="btn-primary">
+            <InlineIcon icon={Phone} size={17} /> Call Now
           </a>
           <Link to="/contact" className="btn-secondary">
             Book a Service →
@@ -101,7 +102,7 @@ export default function Hero() {
           width: 'fit-content'
         }}>
           {[
-            { num: `${RATING}★`, label: 'Google Rating' },
+            { num: RATING, label: 'Google Rating' },
             { num: REVIEW_COUNT, label: 'Google Reviews' },
             { num: '11:30 PM', label: 'Open Till' }
           ].map((stat, i) => (
@@ -163,14 +164,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
           >
-            <div style={{
-              width: 40, height: 40,
-              background: '#fff7ed',
-              borderRadius: 10,
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontSize: 20,
-              flexShrink: 0
-            }}>⚡</div>
+            <IconTile icon={Zap} color="#f59e0b" bg="#fff7ed" size={40} radius={10} iconSize={20} />
             <div style={{ textAlign: 'left' }}>
               <strong style={{
                 display: 'block',
@@ -191,7 +185,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 1 }}
           >
-            <span style={{ fontSize: 20 }}>⭐</span>
+            <Star size={20} fill="#fbbf24" color="#fbbf24" aria-hidden="true" />
             <div style={{ textAlign: 'left' }}>
               <strong style={{
                 display: 'block', color: 'white',

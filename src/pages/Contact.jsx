@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
 import { PHONE_DISPLAY, PHONE_TEL } from '../config/business'
+import { Clock, CircleCheck, LoaderCircle, Lock, MapPin, Phone, Send } from 'lucide-react'
+import { IconTile, InlineIcon, WhatsAppIcon } from '../components/Icons'
 
 const TIMES = ['Morning (9 AM – 12 PM)', 'Afternoon (12 – 4 PM)', 'Evening (4 – 8 PM)', 'Anytime']
 
@@ -96,9 +98,9 @@ export default function Contact() {
             gap: 16
           }}>
             {[
-              { icon: '📞', title: 'Call Us', info: PHONE_DISPLAY, action: 'Tap to Call', href: `tel:${PHONE_TEL}`, color: 'var(--blue)' },
-              { icon: '💬', title: 'WhatsApp', info: PHONE_DISPLAY, action: 'Chat Now', href: whatsappLink(), color: '#25D366' },
-              { icon: '🕐', title: 'Business Hours', info: 'Open Every Day', action: 'Closes 11:30 PM', href: null, color: '#f59e0b' },
+              { icon: Phone, title: 'Call Us', info: PHONE_DISPLAY, action: 'Tap to Call', href: `tel:${PHONE_TEL}`, color: 'var(--blue)' },
+              { icon: WhatsAppIcon, title: 'WhatsApp', info: PHONE_DISPLAY, action: 'Chat Now', href: whatsappLink(), color: '#25D366' },
+              { icon: Clock, title: 'Business Hours', info: 'Open Every Day', action: 'Closes 11:30 PM', href: null, color: '#f59e0b' },
             ].map((card, i) => (
               <motion.a
                 key={i}
@@ -121,14 +123,7 @@ export default function Contact() {
                   textDecoration: 'none'
                 }}
               >
-                <div style={{
-                  width: 52, height: 52,
-                  background: `${card.color}15`,
-                  borderRadius: 14,
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 24, margin: '0 auto 14px'
-                }}>{card.icon}</div>
+                <IconTile icon={card.icon} color={card.color} style={{ margin: '0 auto 14px' }} />
                 <h4 style={{
                   fontFamily: 'var(--font-display)', fontSize: 15,
                   fontWeight: 700, color: 'var(--navy)', marginBottom: 6
@@ -177,7 +172,7 @@ export default function Contact() {
                     textAlign: 'center'
                   }}
                 >
-                  <span style={{ fontSize: 44, display: 'block', marginBottom: 14 }}>✅</span>
+                  <IconTile icon={CircleCheck} color="#16a34a" size={64} radius={32} style={{ margin: '0 auto 14px' }} />
                   <h3 style={{
                     fontFamily: 'var(--font-display)', fontSize: 20,
                     fontWeight: 700, color: 'var(--navy)', marginBottom: 8
@@ -209,8 +204,8 @@ export default function Contact() {
                         href={whatsappLink(lastData)}
                         target="_blank"
                         rel="noreferrer"
-                        style={{ fontSize: 14, fontWeight: 700, color: '#15803d' }}
-                      >💬 Send these details on WhatsApp</a>
+                        style={{ fontSize: 14, fontWeight: 700, color: '#15803d', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      ><WhatsAppIcon size={16} /> Send these details on WhatsApp</a>
                     </div>
                   )}
 
@@ -318,11 +313,13 @@ export default function Contact() {
 
                   {/* Submit */}
                   <button type="submit" className="form-submit" disabled={status === 'sending'}>
-                    {status === 'sending' ? '⏳ Sending...' : '📩 Send Request'}
+                    {status === 'sending'
+                      ? <><InlineIcon icon={LoaderCircle} className="spin" /> Sending...</>
+                      : <><InlineIcon icon={Send} /> Send Request</>}
                   </button>
 
                   <p style={{ fontSize: 13, color: 'var(--gray-400)', textAlign: 'center', marginTop: -8 }}>
-                    🔒 Your details are safe with us. We'll call you back shortly.
+                    <InlineIcon icon={Lock} size={13} style={{ verticalAlign: -2 }} /> Your details are safe with us. We'll call you back shortly.
                   </p>
 
                 </form>
@@ -337,7 +334,7 @@ export default function Contact() {
               style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
             >
               {[
-                { title: '📍 Our Location', content: 'Shop no.10, Vitthal Mall, New CG Rd, near ONGC Circle, Chandkheda, Ahmedabad 382424' },
+                { icon: MapPin, title: 'Our Location', content: 'Shop no.10, Vitthal Mall, New CG Rd, near ONGC Circle, Chandkheda, Ahmedabad 382424' },
               ].map((block, i) => (
                 <div key={i} style={{
                   background: 'var(--gray-50)',
@@ -347,8 +344,9 @@ export default function Contact() {
                 }}>
                   <h4 style={{
                     fontFamily: 'var(--font-display)', fontSize: 15,
-                    fontWeight: 700, color: 'var(--navy)', marginBottom: 8
-                  }}>{block.title}</h4>
+                    fontWeight: 700, color: 'var(--navy)', marginBottom: 8,
+                    display: 'flex', alignItems: 'center', gap: 8
+                  }}><InlineIcon icon={block.icon} size={17} style={{ color: 'var(--blue)' }} />{block.title}</h4>
                   <p style={{ fontSize: 15, color: 'var(--gray-600)', lineHeight: 1.7 }}>
                     {block.content}
                   </p>
@@ -387,7 +385,7 @@ export default function Contact() {
                   fontWeight: 600, fontSize: 15
                 }}
               >
-                <span style={{ fontSize: 22 }}>💬</span>
+                <WhatsAppIcon size={22} />
                 Chat on WhatsApp Instead
               </a>
             </motion.div>

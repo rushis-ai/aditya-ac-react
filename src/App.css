@@ -66,7 +66,10 @@ img { max-width: 100%; display: block; }
 }
 
 .btn-primary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: var(--blue);
   color: var(--white);
   padding: 14px 28px;
@@ -81,7 +84,10 @@ img { max-width: 100%; display: block; }
 .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); }
 
 .btn-secondary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   color: var(--white);
   padding: 14px 28px;
   border-radius: var(--radius);
@@ -133,6 +139,10 @@ img { max-width: 100%; display: block; }
   background-position: right 16px center;
 }
 .form-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 16px;
   font-size: 16px;
@@ -257,3 +267,6 @@ img { max-width: 100%; display: block; }
   .popup-backdrop { align-items: flex-end; padding: 0; }
   .popup-card { max-width: none; border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-height: 92vh; }
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.9s linear infinite; }

@@ -1,23 +1,25 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { Snowflake, Wrench, Refrigerator } from 'lucide-react'
+import { IconTile } from './Icons'
 
 const MotionLink = motion.create(Link)
 
 const services = [
   {
-    icon: '❄️',
+    icon: Snowflake,
     title: 'AC Installation',
     desc: 'Split, window & cassette AC installation for homes and offices. All brands.',
     featured: false
   },
   {
-    icon: '🔧',
+    icon: Wrench,
     title: 'AC Repair & Service',
     desc: 'Gas refill, deep cleaning, PCB repair, compressor service and more.',
     featured: true
   },
   {
-    icon: '🧊',
+    icon: Refrigerator,
     title: 'Refrigeration',
     desc: 'Commercial & domestic fridge repair, cold storage maintenance.',
     featured: false
@@ -63,7 +65,7 @@ export default function ServicesPreview() {
                 textDecoration: 'none'
               }}
             >
-              <div style={{ fontSize: 36, marginBottom: 16 }}>{s.icon}</div>
+              <IconTile icon={s.icon} size={56} style={{ marginBottom: 18 }} />
               <h3 style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 20, fontWeight: 700,

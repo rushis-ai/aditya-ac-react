@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
+import { Zap, Wrench, Moon, MapPin, ShieldCheck } from 'lucide-react'
 
 const items = [
-  { icon: '⚡', label: 'Same Day Service' },
-  { icon: '🔧', label: 'All AC Brands' },
-  { icon: '🌙', label: 'Open Till 11:30 PM' },
-  { icon: '📍', label: 'Chandkheda, Ahmedabad' },
-  { icon: '✅', label: 'Genuine Parts Used' },
+  { icon: Zap, label: 'Same Day Service' },
+  { icon: Wrench, label: 'All AC Brands' },
+  { icon: Moon, label: 'Open Till 11:30 PM' },
+  { icon: MapPin, label: 'Chandkheda, Ahmedabad' },
+  { icon: ShieldCheck, label: 'Genuine Parts Used' },
 ]
 
 export default function TrustBar() {
@@ -30,7 +31,7 @@ export default function TrustBar() {
               fontSize: 14, fontWeight: 500
             }}
           >
-            <span style={{ fontSize: 18 }}>{item.icon}</span>
+            <item.icon size={18} strokeWidth={2.2} aria-hidden="true" style={{ opacity: 0.9 }} />
             <span>{item.label}</span>
           </motion.div>
         ))}

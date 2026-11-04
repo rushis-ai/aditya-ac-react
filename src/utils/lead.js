@@ -5,13 +5,13 @@ import { WHATSAPP } from '../config/business'
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzGXRx4C-hUt-4XWPkR-wcSJXTAALEX4R2_EgLigDaZfiuPidj6-ztJv89m90rJiQ/exec'
 
 export const SERVICES = [
-  ['ac-installation', '❄️ AC Installation'],
-  ['ac-repair', '🔧 AC Repair'],
-  ['ac-cleaning', '🧹 AC Deep Cleaning'],
-  ['gas-refill', '💨 Gas Refill'],
-  ['refrigeration', '🧊 Refrigeration Repair'],
-  ['amc', '📋 Annual Maintenance (AMC)'],
-  ['other', '💬 Other']
+  ['ac-installation', 'AC Installation'],
+  ['ac-repair', 'AC Repair'],
+  ['ac-cleaning', 'AC Deep Cleaning'],
+  ['gas-refill', 'Gas Refill'],
+  ['refrigeration', 'Refrigeration Repair'],
+  ['amc', 'Annual Maintenance (AMC)'],
+  ['other', 'Other']
 ]
 
 // Accepts 9876543210, +91 98765 43210, 09876543210 -> 9876543210 (or null if invalid)
@@ -35,7 +35,7 @@ export function validateLead(form) {
 }
 
 export function whatsappLink(d) {
-  const service = SERVICES.find(([v]) => v === d?.service)?.[1].replace(/^\S+\s/, '') || ''
+  const service = SERVICES.find(([v]) => v === d?.service)?.[1] || ''
   const text = d
     ? [`Hi, I need ${service || 'AC service'}.`, `Name: ${d.name}`, `Phone: ${d.phone}`, d.message].filter(Boolean).join('\n')
     : 'Hi, I need AC service'
