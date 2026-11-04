@@ -8,3 +8,8 @@ export const WHATSAPP_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent
 export const RATING = '4.8'
 export const REVIEW_COUNT = '50+'
 export const REVIEWS_URL = 'https://maps.google.com/?cid=16799643487085380928'
+
+// Opening hours (local time, 24h) — drives the live "Open now" badge
+export const TIMEZONE = 'Asia/Kolkata'
+export const OPENS = { h: 9, m: 0 }
+export const CLOSES = { h: 23, m: 30 }

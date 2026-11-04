@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import heroImg from '../assets/wireman-dissasembling-air-conditioner.webp'
+import HeroVisual from './HeroVisual'
 import { PHONE_TEL, RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
-import { Phone, Star, Zap } from 'lucide-react'
-import { IconTile, InlineIcon } from './Icons'
+import { Phone, Star } from 'lucide-react'
+import { InlineIcon } from './Icons'
 
 export default function Hero() {
   return (
@@ -54,18 +54,18 @@ export default function Hero() {
         {/* Heading */}
         <h1 style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(40px, 5vw, 66px)',
+          fontSize: 'clamp(38px, 4.4vw, 60px)',
           fontWeight: 700,
           color: 'var(--white)',
           lineHeight: 1.12,
           marginBottom: 22,
           letterSpacing: '-0.01em'
         }}>
-          Stay Cool,<br />
+          AC Repair &amp; Service,<br />
           <span style={{
             color: 'var(--accent)',
             fontStyle: 'italic'
-          }}>Any Season.</span>
+          }}>Same Day.</span>
         </h1>
 
         {/* Subtext */}
@@ -76,7 +76,7 @@ export default function Hero() {
           marginBottom: 40,
           maxWidth: 440
         }}>
-          Expert AC installation, repair & refrigeration services in Chandkheda, Ahmedabad. Fast response. All brands. Open till 11:30 PM.
+          Stay cool, any season. Expert AC installation, repair & refrigeration services in Chandkheda, Ahmedabad. Fast response. All brands. Open till 11:30 PM.
         </p>
 
         {/* Buttons: call for urgent jobs, form for bookings (form records lead source) */}
@@ -102,8 +102,8 @@ export default function Hero() {
           width: 'fit-content'
         }}>
           {[
-            { num: RATING, label: 'Google Rating' },
-            { num: REVIEW_COUNT, label: 'Google Reviews' },
+            { num: 'All', label: 'AC Brands' },
+            { num: 'Genuine', label: 'Spare Parts' },
             { num: '11:30 PM', label: 'Open Till' }
           ].map((stat, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
@@ -130,74 +130,14 @@ export default function Hero() {
         </div>
       </motion.div>
 
-      {/* RIGHT — Image */}
+      {/* RIGHT — Illustration */}
       <motion.div
         initial={{ opacity: 0, x: 40 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
         className="hero-media"
       >
-        <div style={{ position: 'relative', width: '100%', maxWidth: 500 }}>
-          {/* Glow behind image */}
-          <div style={{
-            position: 'absolute',
-            inset: -20,
-            background: 'radial-gradient(ellipse at center, rgba(26,86,219,0.2) 0%, transparent 70%)',
-            borderRadius: 'var(--radius-lg)',
-            zIndex: 0
-          }} />
-
-          <img
-            src={heroImg}
-            alt="AC technician servicing outdoor unit"
-            className="hero-img"
-            width="500"
-            height="540"
-            fetchPriority="high"
-            decoding="async"
-          />
-
-          {/* Same Day Service Badge */}
-          <motion.div
-            className="hero-badge-left"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-          >
-            <IconTile icon={Zap} color="#f59e0b" bg="#fff7ed" size={40} radius={10} iconSize={20} />
-            <div style={{ textAlign: 'left' }}>
-              <strong style={{
-                display: 'block',
-                fontFamily: 'var(--font-display)',
-                fontSize: 13, fontWeight: 700,
-                color: 'var(--navy)', marginBottom: 3
-              }}>Same Day Service</strong>
-              <p style={{
-                fontSize: 12, color: 'var(--gray-600)', margin: 0
-              }}>Available till 11:30 PM</p>
-            </div>
-          </motion.div>
-
-          {/* Rating Badge */}
-          <motion.div
-            className="hero-badge-right"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1 }}
-          >
-            <Star size={20} fill="#fbbf24" color="#fbbf24" aria-hidden="true" />
-            <div style={{ textAlign: 'left' }}>
-              <strong style={{
-                display: 'block', color: 'white',
-                fontFamily: 'var(--font-display)',
-                fontSize: 13, fontWeight: 700
-              }}>{RATING} Rating</strong>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
-                {REVIEW_COUNT} Google Reviews
-              </p>
-            </div>
-          </motion.div>
-        </div>
+        <HeroVisual />
       </motion.div>
     </section>
   )
