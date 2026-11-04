@@ -1,20 +1,11 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import heroImg from '../assets/wireman-dissasembling-air-conditioner.webp'
+import { PHONE_TEL, RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
 
 export default function Hero() {
   return (
-    <section style={{
-      minHeight: '100vh',
-      background: 'var(--navy)',
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      alignItems: 'center',
-      padding: '120px 100px 80px 100px',
-      position: 'relative',
-      overflow: 'hidden',
-      gap: 80
-    }}>
+    <section className="hero">
 
       {/* Background shape — top right only */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
@@ -30,10 +21,13 @@ export default function Hero() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        style={{ position: 'relative', zIndex: 1 }}
+        className="hero-content"
       >
         {/* Badge */}
-        <motion.div
+        <motion.a
+          href={REVIEWS_URL}
+          target="_blank"
+          rel="noreferrer"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -49,10 +43,11 @@ export default function Hero() {
             fontSize: 13,
             fontWeight: 500,
             marginBottom: 28,
-            letterSpacing: '0.02em'
+            letterSpacing: '0.02em',
+            textDecoration: 'none'
           }}>
-          ⭐ 5.0 Rated · 39 Reviews · Ahmedabad
-        </motion.div>
+          ⭐ {RATING} on Google · {REVIEW_COUNT} Reviews
+        </motion.a>
 
         {/* Heading */}
         <h1 style={{
@@ -72,7 +67,7 @@ export default function Hero() {
         </h1>
 
         {/* Subtext */}
-        <p style={{
+        <p className="hero-sub" style={{
           fontSize: 16,
           color: 'var(--gray-400)',
           lineHeight: 1.8,
@@ -82,22 +77,22 @@ export default function Hero() {
           Expert AC installation, repair & refrigeration services in Chandkheda, Ahmedabad. Fast response. All brands. Open till 11:30 PM.
         </p>
 
-        {/* Buttons */}
-        <div style={{
+        {/* Buttons: call for urgent jobs, form for bookings (form records lead source) */}
+        <div className="hero-actions" style={{
           display: 'flex', gap: 14,
           flexWrap: 'wrap', marginBottom: 52
         }}>
-          <a href="tel:+917617002071" className="btn-primary"
+          <a href={`tel:${PHONE_TEL}`} className="btn-primary"
             style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             📞 Call Now
           </a>
-          <Link to="/services" className="btn-secondary">
-            Our Services →
+          <Link to="/contact" className="btn-secondary">
+            Book a Service →
           </Link>
         </div>
 
         {/* Stats */}
-        <div style={{
+        <div className="hero-stats" style={{
           display: 'flex', alignItems: 'center', gap: 0,
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -106,13 +101,13 @@ export default function Hero() {
           width: 'fit-content'
         }}>
           {[
-            { num: '5.0★', label: 'Google Rating' },
-            { num: '39+', label: 'Happy Clients' },
+            { num: `${RATING}★`, label: 'Google Rating' },
+            { num: REVIEW_COUNT, label: 'Google Reviews' },
             { num: '11:30 PM', label: 'Open Till' }
           ].map((stat, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
               {i > 0 && (
-                <div style={{
+                <div className="hero-stat-divider" style={{
                   width: 1, height: 36,
                   background: 'rgba(255,255,255,0.12)',
                   margin: '0 24px'
@@ -139,10 +134,7 @@ export default function Hero() {
         initial={{ opacity: 0, x: 40 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        style={{
-          position: 'relative', zIndex: 1,
-          display: 'flex', justifyContent: 'flex-end'
-        }}
+        className="hero-media"
       >
         <div style={{ position: 'relative', width: '100%', maxWidth: 500 }}>
           {/* Glow behind image */}
@@ -157,34 +149,19 @@ export default function Hero() {
           <img
             src={heroImg}
             alt="AC technician servicing outdoor unit"
-            style={{
-              width: '100%',
-              height: 540,
-              objectFit: 'cover',
-              objectPosition: 'center 20%',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
-              position: 'relative',
-              zIndex: 1
-            }}
+            className="hero-img"
+            width="500"
+            height="540"
+            fetchPriority="high"
+            decoding="async"
           />
 
           {/* Same Day Service Badge */}
           <motion.div
+            className="hero-badge-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
-            style={{
-              position: 'absolute',
-              bottom: -24, left: -28,
-              background: 'var(--white)',
-              borderRadius: 'var(--radius)',
-              padding: '14px 20px',
-              display: 'flex', alignItems: 'center', gap: 14,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-              minWidth: 220,
-              zIndex: 2
-            }}
           >
             <div style={{
               width: 40, height: 40,
@@ -194,7 +171,7 @@ export default function Hero() {
               justifyContent: 'center', fontSize: 20,
               flexShrink: 0
             }}>⚡</div>
-            <div>
+            <div style={{ textAlign: 'left' }}>
               <strong style={{
                 display: 'block',
                 fontFamily: 'var(--font-display)',
@@ -207,50 +184,27 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* 5 Star Badge */}
+          {/* Rating Badge */}
           <motion.div
+            className="hero-badge-right"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 1 }}
-            style={{
-              position: 'absolute',
-              top: -20, right: -20,
-              background: 'var(--blue)',
-              borderRadius: 'var(--radius)',
-              padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: 10,
-              boxShadow: '0 8px 32px rgba(26,86,219,0.4)',
-              zIndex: 2
-            }}
           >
             <span style={{ fontSize: 20 }}>⭐</span>
-            <div>
+            <div style={{ textAlign: 'left' }}>
               <strong style={{
                 display: 'block', color: 'white',
                 fontFamily: 'var(--font-display)',
                 fontSize: 13, fontWeight: 700
-              }}>5.0 Rating</strong>
+              }}>{RATING} Rating</strong>
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
-                39 Google Reviews
+                {REVIEW_COUNT} Google Reviews
               </p>
             </div>
           </motion.div>
         </div>
       </motion.div>
-
-      {/* Responsive */}
-      <style>{`
-        @media (max-width: 900px) {
-          section {
-            grid-template-columns: 1fr !important;
-            padding: 100px 24px 80px !important;
-            gap: 48px !important;
-            text-align: center;
-          }
-          section > div:nth-child(2) { justify-content: center !important; }
-          section > div:nth-child(3) { justify-content: center !important; }
-        }
-      `}</style>
     </section>
   )
 }

@@ -1,7 +1,10 @@
+import { WHATSAPP_URL } from '../config/business'
+
 export default function WhatsAppButton() {
   return (
     <a
-      href="https://wa.me/917617002071?text=Hi%2C%20I%20need%20AC%20service"
+      href={WHATSAPP_URL}
+      aria-label="Chat on WhatsApp"
       target="_blank"
       rel="noreferrer"
       style={{

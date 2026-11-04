@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import CTABanner from '../components/CTABanner'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 
 
 const services = [

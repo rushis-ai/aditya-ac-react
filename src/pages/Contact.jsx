@@ -1,13 +1,10 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { getAttribution } from '../utils/attribution'
+import { PHONE_DISPLAY, PHONE_TEL, WHATSAPP } from '../config/business'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzGXRx4C-hUt-4XWPkR-wcSJXTAALEX4R2_EgLigDaZfiuPidj6-ztJv89m90rJiQ/exec'
 
-// Contact numbers: used everywhere on this page
-const PHONE_DISPLAY = '+91 76170 02071'
-const PHONE_TEL = '+917617002071'
-const WHATSAPP = '917617002071'
 
 const SERVICES = [
   ['ac-installation', '❄️ AC Installation'],

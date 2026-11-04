@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { PHONE_TEL } from '../config/business'
 import { Link, useLocation } from 'react-router-dom'
 
 export default function Navbar() {
@@ -12,9 +13,12 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
+  // Close the mobile menu when the route changes (state adjusted during render, no effect needed)
+  const [lastPath, setLastPath] = useState(location.pathname)
+  if (location.pathname !== lastPath) {
+    setLastPath(location.pathname)
     setMenuOpen(false)
-  }, [location])
+  }
 
   return (
     <nav style={{
@@ -56,7 +60,7 @@ export default function Navbar() {
         </ul>
 
         {/* Call Button */}
-        <a href="tel:+917617002071" className="btn-primary" style={{
+        <a href={`tel:${PHONE_TEL}`} className="btn-primary" style={{
           padding: '9px 20px', fontSize: 14
         }} className="desktop-nav">
           📞 Call Now
@@ -89,7 +93,7 @@ export default function Navbar() {
               padding: '6px 0'
             }}>{label}</Link>
           ))}
-          <a href="tel:+917617002071" className="btn-primary" style={{ textAlign: 'center' }}>
+          <a href={`tel:${PHONE_TEL}`} className="btn-primary" style={{ textAlign: 'center' }}>
             📞 Call Now
           </a>
         </div>

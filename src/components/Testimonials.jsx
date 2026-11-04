@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
 
 const reviews = [
   {
@@ -62,13 +63,13 @@ export default function Testimonials() {
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <span style={{
+          <a href={REVIEWS_URL} target="_blank" rel="noreferrer" style={{
             fontFamily: 'var(--font-display)',
             fontSize: 18, fontWeight: 700,
-            color: 'var(--navy)'
+            color: 'var(--navy)', textDecoration: 'none'
           }}>
-            ⭐ 5.0 on Google · 39 Reviews
-          </span>
+            ⭐ {RATING} on Google · {REVIEW_COUNT} Reviews · <span style={{ color: 'var(--blue)' }}>Read all →</span>
+          </a>
         </div>
       </div>
     </section>

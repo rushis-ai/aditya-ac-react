@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
+const MotionLink = motion.create(Link)
+
 const services = [
   {
     icon: '❄️',
@@ -38,7 +40,8 @@ export default function ServicesPreview() {
           gap: 24, marginBottom: 40
         }}>
           {services.map((s, i) => (
-            <motion.div
+            <MotionLink
+              to="/services"
               key={i}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -55,7 +58,9 @@ export default function ServicesPreview() {
                   ? '1.5px solid var(--blue)'
                   : '1.5px solid var(--gray-100)',
                 boxShadow: s.featured ? 'var(--shadow)' : 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'block',
+                textDecoration: 'none'
               }}
             >
               <div style={{ fontSize: 36, marginBottom: 16 }}>{s.icon}</div>
@@ -68,10 +73,10 @@ export default function ServicesPreview() {
                 fontSize: 15, color: 'var(--gray-600)',
                 marginBottom: 20, lineHeight: 1.7
               }}>{s.desc}</p>
-              <Link to="/services" style={{
+              <span style={{
                 fontSize: 14, fontWeight: 600, color: 'var(--blue)'
-              }}>Learn more →</Link>
-            </motion.div>
+              }}>Learn more →</span>
+            </MotionLink>
           ))}
         </div>
 
