@@ -7,8 +7,8 @@ const CONFIG = {
   cookieFirst: 'ft_src',          // first touch (locked)
   cookieLast: 'lt_src',           // last touch (updates)
   maxAgeDays: 30,
-  rootDomain: '',                 // Leave '' on vercel.app. After you buy a domain, set e.g. 'adityaac.in'
-  ownDomains: ['aditya-ac-react.vercel.app', 'localhost'], // add your custom domain here too
+  rootDomain: 'adityaacservice.in', // cookie shared across apex + www; only applied when on this domain
+  ownDomains: ['adityaacservice.in', 'aditya-ac-react.vercel.app', 'localhost'],
   consentRequired: false,         // true = cookie only after window.ftConsent === true
   ai: {
     'chatgpt.com': 'ChatGPT', 'chat.openai.com': 'ChatGPT',
@@ -85,6 +85,11 @@ function readCookie(name) {
   return m ? m[1] : null
 }
 
+// Only scope the cookie to the root domain when actually on it (vercel.app / localhost keep host-only cookies)
+function onRootDomain() {
+  return !!CONFIG.rootDomain && hit(location.hostname.toLowerCase(), CONFIG.rootDomain)
+}
+
 function consentOk() {
   return !CONFIG.consentRequired || window.ftConsent === true
 }
@@ -96,7 +101,7 @@ function save(name, value) {
       ';max-age=' + CONFIG.maxAgeDays * 86400 +
       ';path=/;SameSite=Lax' +
       (location.protocol === 'https:' ? ';Secure' : '') +
-      (CONFIG.rootDomain ? ';domain=.' + CONFIG.rootDomain : '')
+      (onRootDomain() ? ';domain=.' + CONFIG.rootDomain : '')
     if (readCookie(name)) return 'cookie'
   }
   try { sessionStorage.setItem(name, value); return 'session' } catch { return 'none' }
