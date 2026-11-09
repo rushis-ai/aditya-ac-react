@@ -411,3 +411,40 @@ img { max-width: 100%; display: block; }
   .ct-way-action { margin: 0 0 0 auto; font-size: 0; } /* arrow only */
   .ct-way-action svg { width: 18px; height: 18px; }
 }
+
+/* ---------- Blog ---------- */
+.blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+.blog-card {
+  background: var(--white); border: 1.5px solid var(--gray-100);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.blog-card:hover { transform: translateY(-3px); border-color: var(--ice-dark); }
+.blog-card-link { display: block; height: 100%; text-decoration: none; color: inherit; }
+.blog-card-img { width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; display: block; }
+.blog-card-title { font-family: var(--font-display); font-size: 21px; line-height: 1.3; color: var(--navy); margin: 10px 0; }
+.blog-tag {
+  display: inline-block; font-size: 12px; font-weight: 600; color: var(--blue);
+  background: var(--ice); border-radius: 999px; padding: 3px 10px;
+}
+.post-cover { width: 100%; height: auto; border-radius: var(--radius-lg); margin-bottom: 36px; display: block; }
+
+.prose { font-size: 17px; line-height: 1.8; color: var(--gray-800); }
+.prose > * + * { margin-top: 1.1em; }
+.prose h2 { font-family: var(--font-display); font-size: 28px; line-height: 1.3; color: var(--navy); margin-top: 1.8em; }
+.prose h3 { font-family: var(--font-display); font-size: 22px; color: var(--navy); margin-top: 1.5em; }
+.prose a { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose li + li { margin-top: 0.4em; }
+.prose img { max-width: 100%; height: auto; border-radius: var(--radius); }
+.prose blockquote { border-left: 4px solid var(--accent); padding: 4px 0 4px 18px; color: var(--gray-600); font-style: italic; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 15px; display: block; overflow-x: auto; }
+.prose th, .prose td { border: 1px solid var(--gray-100); padding: 10px 12px; text-align: left; }
+.prose th { background: var(--gray-50); }
+.prose code { background: var(--gray-100); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
+
+.post-faq { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--gray-100); }
+.post-faq h2 { font-family: var(--font-display); font-size: 26px; color: var(--navy); margin-bottom: 16px; }
+.post-faq details { border: 1.5px solid var(--gray-100); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 10px; }
+.post-faq summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+.post-faq details p { margin-top: 10px; color: var(--gray-600); line-height: 1.7; }

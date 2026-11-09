@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import Logo from './Logo'
+import { business } from '../content'
+import { OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
 
 export default function Footer() {
   return (
@@ -30,7 +32,7 @@ export default function Footer() {
               marginBottom: 16
             }}>Pages</h5>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[['/', 'Home'], ['/services', 'Services'], ['/contact', 'Contact']].map(([path, label]) => (
+              {[['/', 'Home'], ['/services', 'Services'], ['/blog', 'Blog'], ['/contact', 'Contact']].map(([path, label]) => (
                 <Link key={path} to={path} style={{
                   fontSize: 14, color: 'var(--gray-400)',
                   transition: 'color 0.2s'
@@ -48,17 +50,16 @@ export default function Footer() {
               marginBottom: 16
             }}>Contact</h5>
             <p style={{ fontSize: 14, color: 'var(--gray-400)', lineHeight: 1.7, marginBottom: 8 }}>
-              Shop no.10, Vitthal Mall<br />
-              New CG Rd, near ONGC Circle<br />
-              Chandkheda, Ahmedabad 382424
+              {business.street}<br />
+              {business.locality}, {business.city} {business.postalCode}
             </p>
-            <p style={{ fontSize: 14, color: 'var(--gray-400)' }}>Open · Closes 11:30 PM</p>
+            <p style={{ fontSize: 14, color: 'var(--gray-400)' }}>Open daily · {OPENS_TEXT} – {CLOSES_TEXT}</p>
           </div>
         </div>
 
         <div style={{ padding: '20px 0', textAlign: 'center' }}>
           <p style={{ fontSize: 13, color: 'var(--gray-600)' }}>
-            © 2025 Aditya Air Conditioning & Refrigeration Services. All rights reserved.
+            © {new Date().getFullYear()} Aditya Air Conditioning & Refrigeration Services. All rights reserved.
           </p>
         </div>
       </div>

@@ -1,0 +1,130 @@
+# Content manager configuration. Every save is a Git commit to the branch below,
+# which triggers a Vercel rebuild; changes are live in about a minute.
+
+backend:
+  name: github
+  repo: rushis-ai/aditya-ac-react
+  branch: master
+  # "Sign in with GitHub" goes through the OAuth functions in /api.
+  # Needs GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET set in Vercel (see CMS.md).
+  # Without them, "Sign in with Access Token" still works.
+  base_url: https://www.adityaacservice.in
+  auth_endpoint: api/auth
+  commit_messages:
+    create: 'Content: create {{collection}} "{{slug}}"'
+    update: 'Content: update {{collection}} "{{slug}}"'
+    delete: 'Content: delete {{collection}} "{{slug}}"'
+    uploadMedia: 'Content: upload "{{path}}"'
+    deleteMedia: 'Content: delete "{{path}}"'
+
+site_url: https://www.adityaacservice.in
+display_url: https://www.adityaacservice.in
+logo_url: /favicon.svg
+
+media_folder: public/uploads
+public_folder: /uploads
+
+slug:
+  encoding: ascii
+  clean_accents: true
+
+collections:
+  # ---------------- Blog ----------------
+  - name: blog
+    label: Blog posts
+    label_singular: Blog post
+    folder: content/blog
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{slug}}'
+    summary: '{{title}} ({{date}})'
+    sortable_fields: [date, title]
+    view_filters:
+      - { label: Drafts, field: draft, pattern: true }
+    preview_path: blog/{{slug}}
+    fields:
+      - { name: title, label: Title, widget: string, hint: 'Shown as the page heading (H1). Aim for 50-65 characters.' }
+      - name: description
+        label: Meta description
+        widget: text
+        hint: 'Shown in Google results and on the blog list. 120-160 characters works best.'
+        pattern: ['^[\s\S]{50,170}$', 'Keep it between 50 and 170 characters']
+      - { name: date, label: Publish date, widget: datetime, format: 'YYYY-MM-DD', date_format: 'YYYY-MM-DD', time_format: false }
+      - { name: updated, label: Last updated, widget: datetime, format: 'YYYY-MM-DD', date_format: 'YYYY-MM-DD', time_format: false, required: false, hint: 'Set this when you make a meaningful update; Google treats it as fresh content.' }
+      - { name: author, label: Author, widget: string, required: false, hint: 'Leave blank to use the default author.' }
+      - { name: cover, label: Cover image, widget: image, required: false, hint: '1200x630 px recommended. Also used when the post is shared on WhatsApp or social media.' }
+      - { name: coverAlt, label: Cover image alt text, widget: string, required: false, hint: 'Describe the image for screen readers and Google Images.' }
+      - { name: tags, label: Tags, widget: list, required: false, default: [] }
+      - { name: body, label: Body, widget: markdown, hint: "Start sections with Heading 2. Don't add another H1; the title is the H1." }
+      - name: faq
+        label: FAQs
+        widget: list
+        required: false
+        hint: 'Optional. Shown at the end of the post and sent to Google as FAQ structured data.'
+        summary: '{{q}}'
+        fields:
+          - { name: q, label: Question, widget: string }
+          - { name: a, label: Answer, widget: text }
+      - { name: draft, label: Draft, widget: boolean, default: false, required: false, hint: 'Drafts are not published, listed or added to the sitemap.' }
+      - { name: seoTitle, label: SEO title (optional), widget: string, required: false, hint: 'Overrides the browser-tab / Google title. Leave blank to use the post title.' }
+      - { name: canonical, label: Canonical URL (optional), widget: string, required: false, hint: 'Only if this post was first published on another site.' }
+      - { name: noindex, label: Hide from search engines, widget: boolean, default: false, required: false }
+
+  # ---------------- Page SEO ----------------
+  - name: pages
+    label: Page SEO
+    files:
+      - name: home
+        label: Home
+        file: content/pages/home.json
+        fields: &pageFields
+          - { name: title, label: SEO title, widget: string, hint: 'Browser tab and Google title. 50-65 characters.' }
+          - { name: description, label: Meta description, widget: text, hint: '120-160 characters.' }
+          - { name: ogImage, label: Social share image, widget: image, required: false, hint: '1200x630 px. Falls back to the site default.' }
+      - { name: services, label: Services, file: content/pages/services.json, fields: *pageFields }
+      - { name: contact, label: Contact, file: content/pages/contact.json, fields: *pageFields }
+      - name: blog
+        label: Blog list
+        file: content/pages/blog.json
+        fields:
+          - { name: title, label: SEO title, widget: string }
+          - { name: description, label: Meta description, widget: text }
+          - { name: ogImage, label: Social share image, widget: image, required: false }
+          - { name: heading, label: Page heading, widget: string }
+          - { name: intro, label: Intro text, widget: text }
+
+  # ---------------- Settings ----------------
+  - name: settings
+    label: Settings
+    files:
+      - name: site
+        label: Site & SEO defaults
+        file: content/settings/site.json
+        fields:
+          - { name: siteName, label: Business name (full), widget: string }
+          - { name: shortName, label: Short name, widget: string }
+          - { name: siteUrl, label: Site URL, widget: string, hint: 'No trailing slash. Used for canonical URLs and the sitemap.' }
+          - { name: titleSuffix, label: Title suffix, widget: string, hint: 'Added after blog post titles: "Post title | suffix".' }
+          - { name: defaultOgImage, label: Default social share image, widget: image }
+          - { name: locale, label: Locale, widget: string, default: en_IN }
+          - { name: blogAuthor, label: Default blog author, widget: string }
+      - name: business
+        label: Business details
+        file: content/settings/business.json
+        fields:
+          - { name: phoneDisplay, label: Phone (display), widget: string }
+          - { name: phoneTel, label: Phone (dial format), widget: string, hint: 'e.g. +917617002071' }
+          - { name: whatsapp, label: WhatsApp number, widget: string, hint: 'Country code + number, digits only' }
+          - { name: rating, label: Google rating, widget: string }
+          - { name: reviewCount, label: Review count, widget: string }
+          - { name: reviewsUrl, label: Google reviews link, widget: string }
+          - { name: street, label: Street address, widget: string }
+          - { name: locality, label: Area, widget: string }
+          - { name: city, label: City, widget: string }
+          - { name: region, label: State, widget: string }
+          - { name: postalCode, label: PIN code, widget: string }
+          - { name: country, label: Country code, widget: string }
+          - { name: areaServed, label: Areas served, widget: list }
+          - { name: opens, label: Opens (24h HH:MM), widget: string, pattern: ['^\d{2}:\d{2}$', 'Use HH:MM'] }
+          - { name: closes, label: Closes (24h HH:MM), widget: string, pattern: ['^\d{2}:\d{2}$', 'Use HH:MM'] }

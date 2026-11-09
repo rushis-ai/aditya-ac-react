@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { motion } from 'framer-motion'
 import { Snowflake, Fan, Clock } from 'lucide-react'
 import { useOpenNow, OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
@@ -10,10 +10,13 @@ const START_TEMP = 38
 const END_TEMP = 24
 
 const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+const noSubscribe = () => () => {}
 
 function useCoolDown() {
-  const [temp, setTemp] = useState(() => (reducedMotion() ? END_TEMP : START_TEMP))
+  // Server snapshot is false, so prerendered HTML matches the first browser render
+  const reduced = useSyncExternalStore(noSubscribe, reducedMotion, () => false)
+  const [temp, setTemp] = useState(START_TEMP)
   useEffect(() => {
     if (reducedMotion()) return
     let t = START_TEMP
@@ -27,7 +30,7 @@ function useCoolDown() {
     }, 1100)
     return () => { clearTimeout(start); clearInterval(iv) }
   }, [])
-  return temp
+  return reduced ? END_TEMP : temp
 }
 
 function AcUnit({ temp }) {

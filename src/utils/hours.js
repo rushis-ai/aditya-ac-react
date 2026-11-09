@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { TIMEZONE, OPENS, CLOSES } from '../config/business'
 
 // Is the business open right now, in its own time zone?
@@ -16,12 +16,10 @@ export const fmtTime = ({ h, m }) => `${((h + 11) % 12) + 1}${m ? ':' + String(m
 export const OPENS_TEXT = fmtTime(OPENS)
 export const CLOSES_TEXT = fmtTime(CLOSES)
 
-// Re-checks every minute so the badge flips at opening/closing time
+// Re-checks every minute so the badge flips at opening/closing time.
+// useSyncExternalStore keeps prerendered HTML and the first browser render in
+// agreement (server snapshot = "open"), then switches to the real value.
+const subscribe = (cb) => { const iv = setInterval(cb, 60000); return () => clearInterval(iv) }
 export function useOpenNow() {
-  const [open, setOpen] = useState(openNow)
-  useEffect(() => {
-    const iv = setInterval(() => setOpen(openNow()), 60000)
-    return () => clearInterval(iv)
-  }, [])
-  return open
+  return useSyncExternalStore(subscribe, openNow, () => true)
 }

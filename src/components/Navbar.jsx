@@ -46,11 +46,11 @@ export default function Navbar() {
           display: 'flex', gap: 28, marginLeft: 'auto',
           listStyle: 'none'
         }} className="desktop-nav">
-          {[['/', 'Home'], ['/services', 'Services'], ['/contact', 'Contact']].map(([path, label]) => (
+          {[['/', 'Home'], ['/services', 'Services'], ['/blog', 'Blog'], ['/contact', 'Contact']].map(([path, label]) => (
             <li key={path}>
               <Link to={path} style={{
                 fontSize: 14, fontWeight: 500,
-                color: location.pathname === path ? 'var(--blue)' : 'var(--gray-600)',
+                color: (location.pathname === path || (path !== '/' && location.pathname.startsWith(path + '/'))) ? 'var(--blue)' : 'var(--gray-600)',
                 transition: 'color 0.2s'
               }}>{label}</Link>
             </li>
@@ -84,10 +84,10 @@ export default function Navbar() {
           borderTop: '1px solid var(--gray-100)',
           background: 'white'
         }}>
-          {[['/', 'Home'], ['/services', 'Services'], ['/contact', 'Contact']].map(([path, label]) => (
+          {[['/', 'Home'], ['/services', 'Services'], ['/blog', 'Blog'], ['/contact', 'Contact']].map(([path, label]) => (
             <Link key={path} to={path} style={{
               fontSize: 15, fontWeight: 500,
-              color: location.pathname === path ? 'var(--blue)' : 'var(--gray-600)',
+              color: (location.pathname === path || (path !== '/' && location.pathname.startsWith(path + '/'))) ? 'var(--blue)' : 'var(--gray-600)',
               padding: '6px 0'
             }}>{label}</Link>
           ))}

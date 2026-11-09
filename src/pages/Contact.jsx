@@ -1,5 +1,8 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import Seo from '../components/Seo'
+import { pages } from '../content'
+import { breadcrumbSchema, localBusinessSchema } from '../content/schema'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
 import { PHONE_DISPLAY, PHONE_TEL, RATING, REVIEWS_URL } from '../config/business'
 import { useOpenNow, OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
@@ -26,11 +29,6 @@ export default function Contact() {
     document.getElementById('book')?.scrollIntoView({ behavior: 'smooth' })
     setTimeout(() => document.getElementById('name')?.focus({ preventScroll: true }), 500)
   }
-
-  useEffect(() => {
-    document.title = 'Contact Us | Aditya Air Conditioning & Refrigeration Services'
-    document.querySelector('meta[name="description"]')?.setAttribute('content', 'Need AC or refrigeration services in Chandkheda, Motera, Ahmedabad? Contact Aditya Air Conditioning & Refrigeration Services for expert assistance.')
-  }, [])
 
   const clearError = (field) => setErrors(prev => (prev[field] ? { ...prev, [field]: undefined } : prev))
 
@@ -66,6 +64,12 @@ export default function Contact() {
 
   return (
     <div style={{ paddingTop: 64 }}>
+      <Seo
+        title={pages.contact.title}
+        description={pages.contact.description}
+        image={pages.contact.ogImage}
+        jsonLd={[localBusinessSchema(), breadcrumbSchema([['Home', '/'], ['Contact', '/contact']])]}
+      />
 
       {/* Page Header */}
       <section className="ct-hero">

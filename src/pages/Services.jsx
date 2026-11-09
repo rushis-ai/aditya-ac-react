@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import CTABanner from '../components/CTABanner'
-import { useEffect } from 'react'
+import Seo from '../components/Seo'
+import { pages } from '../content'
 import { Check, ClipboardCheck, Refrigerator, Snowflake, Sparkles, Wrench } from 'lucide-react'
 import { IconTile, InlineIcon } from '../components/Icons'
 
@@ -37,14 +38,9 @@ const services = [
 const brands = ['Daikin', 'Voltas', 'LG', 'Blue Star', 'Hitachi', 'Samsung', 'Carrier', 'Lloyd', 'Godrej', 'Whirlpool', 'Panasonic', 'Haier']
 
 export default function Services() {
-
-useEffect(() => {
-  document.title = 'Our Services | Aditya Air Conditioning & Refrigeration Services'
-  document.querySelector('meta[name="description"]')?.setAttribute('content', 'AC installation, repair, gas refill, deep cleaning, refrigeration & AMC plans in Chandkheda, Ahmedabad. All brands serviced.')
-}, [])
-
   return (
     <div style={{ paddingTop: 64 }}>
+      <Seo title={pages.services.title} description={pages.services.description} image={pages.services.ogImage} />
       {/* Header */}
       <section style={{
         background: 'var(--navy)', padding: '80px 24px 64px',
