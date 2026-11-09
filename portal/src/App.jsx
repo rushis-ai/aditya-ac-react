@@ -6,8 +6,9 @@ import { dueCount } from './lib.js'
 import Leads from './Leads.jsx'
 import Reports from './Reports.jsx'
 import LeadPanel from './LeadPanel.jsx'
+import Logo from './Logo.jsx'
 
-const TABS = [['today', 'Today'], ['leads', 'Leads'], ['reports', 'Reports']]
+const TABS = [['today', 'Today'], ['leads', 'Leads'], ['reports', 'Report']]
 const REFRESH_MS = 60_000
 
 export default function App() {
@@ -134,23 +135,29 @@ export default function App() {
     <div className="app">
       <header className="top">
         <div className="top-row">
-          <strong className="brand">Lead Desk</strong>
+          <div className="brand">
+            <Logo size={34} />
+            <span className="brand-text">
+              <strong>Lead Desk</strong>
+              <span>Enquiry manager</span>
+            </span>
+          </div>
+          <nav className="tabs" aria-label="Sections">
+            {TABS.map(([k, label]) => (
+              <button key={k} className={'tab' + (tab === k ? ' active' : '')} aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)}>
+                {label}
+                {k === 'today' && due > 0 && <span className="count">{due}</span>}
+              </button>
+            ))}
+          </nav>
           <div className="top-actions">
-            <button className="btn icon" onClick={load} disabled={loading} aria-label="Refresh" title="Refresh">
+            <button className="icon-btn" onClick={load} disabled={loading} aria-label="Refresh leads" title="Refresh">
               <span className={loading ? 'spin' : ''}>↻</span>
             </button>
-            <span className="muted small user">{me.user}</span>
-            <button className="btn" onClick={logout}>Log out</button>
+            <span className="avatar" title={`Signed in as ${me.user}`}>{me.user.slice(0, 1).toUpperCase()}</span>
+            <button className="btn ghost" onClick={logout}>Log out</button>
           </div>
         </div>
-        <nav className="tabs" aria-label="Sections">
-          {TABS.map(([k, label]) => (
-            <button key={k} className={'tab' + (tab === k ? ' active' : '')} aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)}>
-              {label}
-              {k === 'today' && due > 0 && <span className="count">{due}</span>}
-            </button>
-          ))}
-        </nav>
       </header>
 
       <main className="content">
@@ -166,7 +173,7 @@ export default function App() {
         ) : tab === 'leads' ? (
           <Leads leads={leads} statuses={me.statuses} users={me.users} onOpen={setOpenId} />
         ) : (
-          <Reports leads={leads} statuses={me.statuses} />
+          <Reports leads={leads} onOpen={setOpenId} />
         )}
       </main>
 

@@ -26,6 +26,49 @@ export function addDays(n) {
   return dateStr(d)
 }
 
+// ---------- date ranges (shared by Leads and Reports) ----------
+export const PRESETS = [
+  ['today', 'Today'], ['yesterday', 'Yesterday'], ['7d', 'Last 7 days'], ['30d', 'Last 30 days'],
+  ['month', 'This month'], ['lastmonth', 'Last month'], ['year', 'This year'], ['all', 'All time']
+]
+
+export const parseDay = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
+export const shiftDay = (s, n) => { const d = parseDay(s); d.setDate(d.getDate() + n); return dateStr(d) }
+export const daysBetween = (a, b) => Math.round((parseDay(b) - parseDay(a)) / 864e5) + 1
+
+// -> [from, to] as YYYY-MM-DD; '' means open-ended
+export function presetRange(key) {
+  const t = new Date()
+  const today = todayStr()
+  switch (key) {
+    case 'today': return [today, today]
+    case 'yesterday': return [addDays(-1), addDays(-1)]
+    case '7d': return [addDays(-6), today]
+    case '30d': return [addDays(-29), today]
+    case 'month': return [dateStr(new Date(t.getFullYear(), t.getMonth(), 1)), today]
+    case 'lastmonth': return [dateStr(new Date(t.getFullYear(), t.getMonth() - 1, 1)), dateStr(new Date(t.getFullYear(), t.getMonth(), 0))]
+    case 'year': return [dateStr(new Date(t.getFullYear(), 0, 1)), today]
+    default: return ['', '']
+  }
+}
+
+export function rangeFrom(preset) {
+  const [from, to] = presetRange(preset)
+  return { preset, from, to }
+}
+
+export function inRange(l, [from, to]) {
+  const d = l.date.slice(0, 10)
+  if (!d) return !from && !to
+  return (!from || d >= from) && (!to || d <= to)
+}
+
+export function rangeLabel([from, to]) {
+  if (!from && !to) return 'All time'
+  if (from === to) return fmtDate(from, { time: false })
+  return `${from ? fmtDate(from, { time: false }) : 'Start'} – ${to ? fmtDate(to, { time: false }) : 'today'}`
+}
+
 // Badge on the Today tab: uncalled new leads + follow-ups due
 export function dueCount(leads) {
   const t = todayStr()

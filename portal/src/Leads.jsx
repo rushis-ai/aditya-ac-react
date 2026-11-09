@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
-import LeadRow from './LeadRow.jsx'
-import { SERVICES, downloadCsv, sourceOf } from './lib.js'
+import LeadsTable from './LeadsTable.jsx'
+import DateRange from './DateRange.jsx'
+import { SERVICES, CLOSED, downloadCsv, inRange, sourceOf, rangeFrom } from './lib.js'
 
-const PAGE = 100
+const PAGE = 50
 
 export default function Leads({ leads, statuses, users, onOpen }) {
-  const [f, setF] = useState({ q: '', status: 'open', service: '', source: '', assigned: '', from: '', to: '' })
+  const [range, setRange] = useState(() => rangeFrom('all'))
+  const [f, setF] = useState({ q: '', status: 'open', service: '', source: '', assigned: '' })
   const [shown, setShown] = useState(PAGE)
   const set = (k) => (e) => { setF({ ...f, [k]: e.target.value }); setShown(PAGE) }
 
@@ -14,24 +16,32 @@ export default function Leads({ leads, statuses, users, onOpen }) {
   const list = useMemo(() => {
     const q = f.q.trim().toLowerCase()
     const qd = q.replace(/\D/g, '')
+    const r = [range.from, range.to]
     return leads.filter((l) => {
-      if (f.status === 'open' ? ['Won', 'Lost', 'Spam'].includes(l.status) : f.status && l.status !== f.status) return false
+      if (!inRange(l, r)) return false
+      if (f.status === 'open' ? CLOSED.includes(l.status) : f.status && l.status !== f.status) return false
       if (f.service && l.service !== f.service) return false
       if (f.source && sourceOf(l) !== f.source) return false
       if (f.assigned && (f.assigned === '-' ? l.assigned : l.assigned !== f.assigned)) return false
-      const day = l.date.slice(0, 10)
-      if (f.from && day < f.from) return false
-      if (f.to && day > f.to) return false
       if (q && !(l.name.toLowerCase().includes(q) || l.message.toLowerCase().includes(q) || (qd.length >= 3 && l.phone.includes(qd)))) return false
       return true
     })
-  }, [leads, f])
+  }, [leads, f, range])
 
   return (
     <div className="stack">
+      <div className="page-head">
+        <div>
+          <h1>Leads</h1>
+          <p className="muted">Every enquiry from the website. Click a lead to call, update or add notes.</p>
+        </div>
+        <button className="btn" onClick={() => downloadCsv(list)} disabled={!list.length}>Export CSV</button>
+      </div>
+
       <section className="card filters">
-        <input type="search" placeholder="Search name, phone or message" value={f.q} onChange={set('q')} aria-label="Search" />
+        <DateRange value={range} onChange={(v) => { setRange(v); setShown(PAGE) }} />
         <div className="filter-grid">
+          <input type="search" placeholder="Search name, phone or message" value={f.q} onChange={set('q')} aria-label="Search" />
           <select value={f.status} onChange={set('status')} aria-label="Status">
             <option value="open">Open leads</option>
             <option value="">All statuses</option>
@@ -50,23 +60,22 @@ export default function Leads({ leads, statuses, users, onOpen }) {
             <option value="-">Unassigned</option>
             {users.map((u) => <option key={u}>{u}</option>)}
           </select>
-          <label className="date-field">From <input type="date" value={f.from} onChange={set('from')} /></label>
-          <label className="date-field">To <input type="date" value={f.to} onChange={set('to')} /></label>
         </div>
       </section>
 
-      <section className="card">
-        <div className="list-head">
+      <section className="card flush">
+        <div className="card-head">
           <h2>{list.length} {list.length === 1 ? 'lead' : 'leads'}</h2>
-          <button className="btn" onClick={() => downloadCsv(list)} disabled={!list.length}>Export CSV</button>
         </div>
         {list.length ? (
-          <ul className="list">{list.slice(0, shown).map((l) => <LeadRow key={l.id} lead={l} onOpen={onOpen} />)}</ul>
+          <LeadsTable leads={list.slice(0, shown)} onOpen={onOpen} />
         ) : (
-          <p className="empty">No leads match these filters.</p>
+          <p className="empty pad">No leads match these filters.</p>
         )}
         {list.length > shown && (
-          <button className="btn wide" onClick={() => setShown(shown + PAGE)}>Show more ({list.length - shown} left)</button>
+          <div className="pad">
+            <button className="btn wide" onClick={() => setShown(shown + PAGE)}>Show more ({list.length - shown} left)</button>
+          </div>
         )}
       </section>
     </div>

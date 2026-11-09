@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { call } from './api.js'
+import Logo from './Logo.jsx'
 
 export default function Login({ onLogin, notice }) {
   const [error, setError] = useState(notice || '')
@@ -25,8 +26,13 @@ export default function Login({ onLogin, notice }) {
   return (
     <main className="login">
       <form className="card login-card" onSubmit={submit}>
-        <h1>Lead Desk</h1>
-        <p className="muted">Sign in to continue</p>
+        <div className="login-brand">
+          <Logo size={44} />
+          <div>
+            <h1>Lead Desk</h1>
+            <p className="muted">Sign in to manage enquiries</p>
+          </div>
+        </div>
         <label>
           Username
           <input name="username" autoComplete="username" autoCapitalize="none" spellCheck="false" required autoFocus />

@@ -8,7 +8,7 @@ const pad = (n) => String(n).padStart(2, '0')
 const day = (offset, h = 10) => {
   const d = new Date()
   d.setDate(d.getDate() + offset)
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad((offset * 7 + 60) % 60)}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad((((offset * 7) % 60) + 60) % 60)}`
 }
 
 const leads = Array.from({ length: 60 }, (_, i) => {
