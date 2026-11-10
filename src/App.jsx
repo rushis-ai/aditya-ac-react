@@ -1,4 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { trackPageView } from './utils/analytics'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import WhatsAppButton from './components/WhatsAppButton'
@@ -11,10 +13,18 @@ import BlogPost from './pages/BlogPost'
 import NotFound from './pages/NotFound'
 import './App.css'
 
+// One page_view per route change, sent after render so the new <title> is in place
+function PageViews() {
+  const { pathname } = useLocation()
+  useEffect(() => { trackPageView() }, [pathname])
+  return null
+}
+
 // The router itself is supplied by main.jsx (browser) or entry-server.jsx (prerender)
 function App() {
   return (
     <>
+      <PageViews />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

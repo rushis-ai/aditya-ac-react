@@ -4,8 +4,10 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { captureAttribution } from './utils/attribution'
+import { initAnalytics } from './utils/analytics'
 
 captureAttribution()
+initAnalytics()
 
 const app = (
   <StrictMode>
