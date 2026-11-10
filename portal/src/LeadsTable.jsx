@@ -1,5 +1,5 @@
 import { StatusBadge } from './LeadRow.jsx'
-import { fmtDate, serviceLabel, sourceOf, telLink, todayStr } from './lib.js'
+import { fmtDate, serviceLabel, sourceOf, telLink, todayStr, typedNotes } from './lib.js'
 
 // Table on desktop, stacked cards on phones (same markup; CSS switches the layout)
 export default function LeadsTable({ leads, onOpen, compact = false }) {
@@ -27,10 +27,10 @@ export default function LeadsTable({ leads, onOpen, compact = false }) {
                 <button className="link-btn" onClick={(e) => { e.stopPropagation(); onOpen(l.id) }}>
                   {l.name || '(no name)'}
                 </button>
-                {l.notes.length > 0 && <span className="note-count" title={`${l.notes.length} note(s)`}>{l.notes.length}</span>}
+                {typedNotes(l).length > 0 && <span className="note-count" title={`${typedNotes(l).length} note(s)`}>{typedNotes(l).length}</span>}
               </td>
               <td data-label="Phone" className="nowrap">
-                {l.phone ? <a href={telLink(l.phone)} onClick={(e) => e.stopPropagation()}>{l.phone}</a> : '—'}
+                {l.phone ? <a href={telLink(l.phone)} onClick={(e) => { e.stopPropagation(); onOpen(l.id, 'call') }}>{l.phone}</a> : '—'}
               </td>
               <td data-label="Service"><span className="svc">{serviceLabel(l.service)}</span></td>
               <td data-label="Status"><StatusBadge status={l.status} /></td>

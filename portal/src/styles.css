@@ -324,6 +324,36 @@ thead th {
 .notes li { padding: 10px 14px; border-radius: 10px; background: var(--gray-50); border-left: 3px solid var(--accent); }
 .notes p { margin: 0 0 4px; white-space: pre-wrap; word-break: break-word; }
 .source summary { cursor: pointer; color: var(--blue); font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.notes li.change { background: none; border-left-color: var(--gray-200); padding-top: 4px; padding-bottom: 4px; }
+.notes li.change p { font-size: 13px; color: var(--gray-600); margin-bottom: 0; }
+.notes li.change .small { font-size: 12px; }
+
+/* After tapping Call / WhatsApp */
+.outcome {
+  display: grid; gap: 10px; padding: 14px 16px; border-radius: var(--radius);
+  background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 25%, white);
+}
+.outcome p { color: var(--navy); }
+.outcome .chips { align-items: center; }
+.outcome .pill { background: var(--white); }
+
+/* ---------- new lead form ---------- */
+.btn.accent { background: var(--accent); border-color: var(--accent); color: var(--navy); }
+.btn.accent:hover { background: #22d3ee; border-color: #22d3ee; }
+.form { gap: 16px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.chips-field { border: 0; margin: 0; padding: 0; display: grid; gap: 7px; }
+.chips-field legend { padding: 0; margin-bottom: 7px; font-size: 13px; font-weight: 500; color: var(--gray-600); }
+.dupe {
+  display: grid; gap: 6px; padding: 12px 14px; border-radius: var(--radius);
+  background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 14px;
+}
+.dupe-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: var(--white); border: 1px solid #fde68a; border-radius: 8px; padding: 6px 10px;
+  cursor: pointer; text-align: left; color: var(--navy);
+}
+.dupe-row:hover { border-color: var(--blue); }
 
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0;
@@ -363,6 +393,8 @@ thead th {
   .range-custom input { width: 100%; }
   .panel { max-width: none; }
   .avatar { display: none; }
+  .hide-sm { display: none; }
+  .two { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .spin { animation: none; }

@@ -107,6 +107,15 @@ const digits = (p) => String(p).replace(/\D/g, '')
 export const telLink = (p) => 'tel:' + (digits(p).length === 10 ? '+91' + digits(p) : '+' + digits(p))
 export const waLink = (p) => 'https://wa.me/' + (digits(p).length === 10 ? '91' + digits(p) : digits(p))
 
+// Same number, ignoring spaces and the country code (compares the last 10 digits)
+export function samePhone(a, b) {
+  const x = digits(a), y = digits(b)
+  return x.length >= 7 && y.length >= 7 && x.slice(-10) === y.slice(-10)
+}
+
+// Notes typed by people (the rest of lead.notes is change history)
+export const typedNotes = (l) => l.notes.filter((n) => n.kind !== 'change')
+
 // CSV download. Cells starting with = + - @ get a leading ' so spreadsheets don't run them as formulas.
 export function downloadCsv(leads) {
   const cols = [
@@ -114,7 +123,7 @@ export function downloadCsv(leads) {
     ['Service', (l) => serviceLabel(l.service)], ['Message', (l) => l.message], ['Status', (l) => l.status],
     ['Assigned To', (l) => l.assigned], ['Follow-up', (l) => l.followUp], ['First Source', (l) => l.first_source],
     ['First Medium', (l) => l.first_medium], ['Last Source', (l) => l.last_source], ['Last Medium', (l) => l.last_medium],
-    ['Campaign', (l) => l.last_campaign || l.first_campaign], ['Latest Note', (l) => l.notes[0]?.text || '']
+    ['Campaign', (l) => l.last_campaign || l.first_campaign], ['Latest Note', (l) => typedNotes(l)[0]?.text || '']
   ]
   const cell = (v) => {
     let s = String(v ?? '')

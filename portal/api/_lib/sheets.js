@@ -9,8 +9,12 @@
 import crypto from 'node:crypto'
 
 export const STATUSES = ['New', 'Contacted', 'Quoted', 'Won', 'Lost', 'Spam']
+// How a hand-added lead reached us (stored as its source)
+export const CHANNELS = ['Phone call', 'Walk-in', 'Referral', 'Other']
 const CRM_COLS = ['Lead ID', 'Status', 'Assigned To', 'Follow-up', 'Updated By', 'Updated At']
 const NOTES_TAB = process.env.NOTES_TAB || 'Notes'
+// Kind: "note" (typed by a person) or "change" (status / assignee / follow-up history)
+const NOTES_HEAD = ['When', 'Lead ID', 'By', 'Note', 'Kind']
 const TZ = process.env.PORTAL_TZ || 'Asia/Kolkata'
 
 // Header names accepted for each field (compared lowercase, letters/digits only)
@@ -126,6 +130,9 @@ async function setup() {
   const keys = head.map(norm)
   const missing = CRM_COLS.filter((c) => !keys.includes(norm(c)))
 
+  // Older Notes tabs were made without the Kind column
+  const notesHead = hasNotes ? (await api(`/values/${enc(quote(NOTES_TAB) + '!1:1')}`)).values?.[0] || [] : []
+
   const requests = []
   if (!hasNotes) requests.push({ addSheet: { properties: { title: NOTES_TAB } } })
   const extra = head.length + missing.length - leads.gridProperties.columnCount
@@ -134,7 +141,8 @@ async function setup() {
 
   const data = []
   if (missing.length) data.push({ range: `${quote(leads.title)}!${colLetter(head.length)}1`, values: [missing] })
-  if (!hasNotes) data.push({ range: `${quote(NOTES_TAB)}!A1`, values: [['When', 'Lead ID', 'By', 'Note']] })
+  if (!hasNotes) data.push({ range: `${quote(NOTES_TAB)}!A1`, values: [NOTES_HEAD] })
+  else if (!notesHead[4]) data.push({ range: `${quote(NOTES_TAB)}!E1`, values: [['Kind']] })
   if (data.length) await writeCells(data)
   return leads.title
 }
@@ -175,9 +183,11 @@ export async function loadLeads() {
   ])
 
   const notesById = {}
-  for (const [when = '', id = '', by = '', text = ''] of (notesRes.values || []).slice(1)) {
+  for (const [when = '', id = '', by = '', text = '', kind = ''] of (notesRes.values || []).slice(1)) {
     if (!id) continue
-    ;(notesById[id] ||= []).push({ when: cellDate(when) || String(when), by: String(by), text: String(text) })
+    ;(notesById[id] ||= []).push({
+      when: cellDate(when) || String(when), by: String(by), text: String(text), kind: kind === 'change' ? 'change' : 'note'
+    })
   }
 
   const leads = []
@@ -218,26 +228,84 @@ export async function loadLeads() {
   return leads.reverse() // newest first
 }
 
+const FIELD_LABEL = { status: 'Status', assigned: 'Assigned to', followUp: 'Follow-up' }
+
+// One line of history, e.g. "Status: New → Contacted"
+function changeText(f, from, to) {
+  if (f === 'followUp') return to ? `Follow-up set for ${to}` : 'Follow-up cleared'
+  return `${FIELD_LABEL[f]}: ${from || 'nobody'} → ${to || 'nobody'}`
+}
+
+// rows: [{ id, when, by, text, kind }]
+async function appendNotes(rows) {
+  if (!rows.length) return
+  await api(`/values/${enc(quote(NOTES_TAB) + '!A:E')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+    method: 'POST',
+    body: { values: rows.map((n) => [n.when, n.id, n.by, n.text, n.kind]) }
+  })
+}
+const withoutId = (n) => ({ when: n.when, by: n.by, text: n.text, kind: n.kind })
+
 // changes: { status?, assigned?, followUp? } (already validated by the caller)
+// Returns { lead: saved fields, history: entries written for what actually changed, newest first }, or null
 export async function updateLead(id, changes, user) {
   const tab = await leadsTab()
   const { rows, m } = await readLeadsTab(tab)
   const r = rows.findIndex((row, i) => i > 0 && String(row?.[m.id] ?? '') === id)
   if (r < 0) return null
+  const row = rows[r] || []
+  const prevStatus = String(row[m.status] ?? '').trim()
+  const old = {
+    status: STATUSES.includes(prevStatus) ? prevStatus : 'New',
+    assigned: String(row[m.assigned] ?? '').trim(),
+    followUp: cellDate(row[m.followUp] ?? '').slice(0, 10)
+  }
   const cell = (f) => `${quote(tab)}!${colLetter(m[f])}${r + 1}`
   const updatedAt = nowLocal()
   const data = Object.entries(changes).map(([f, v]) => ({ range: cell(f), values: [[v]] }))
   data.push({ range: cell('updatedBy'), values: [[user]] }, { range: cell('updatedAt'), values: [[updatedAt]] })
-  await writeCells(data)
-  return { ...changes, updatedBy: user, updatedAt }
+  const history = Object.entries(changes)
+    .filter(([f, v]) => old[f] !== v)
+    .map(([f, v]) => ({ id, when: updatedAt, by: user, text: changeText(f, old[f], v), kind: 'change' }))
+  await Promise.all([writeCells(data), appendNotes(history)])
+  return { lead: { ...changes, updatedBy: user, updatedAt }, history: history.map(withoutId).reverse() }
 }
 
 export async function addNote(id, text, user) {
   await leadsTab()
-  const note = { when: nowLocal(), by: user, text }
-  await api(`/values/${enc(quote(NOTES_TAB) + '!A:D')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
-    method: 'POST',
-    body: { values: [[note.when, id, user, text]] }
-  })
+  const note = { when: nowLocal(), by: user, text, kind: 'note' }
+  await appendNotes([{ id, ...note }])
   return note
+}
+
+// A lead that didn't come through the website (phone call, walk-in…).
+// f: { name, phone, service, message, channel, assigned, followUp, note } (validated by the caller)
+export async function createLead(f, user) {
+  const tab = await leadsTab()
+  const head = (await api(`/values/${enc(quote(tab) + '!1:1')}`)).values?.[0] || []
+  const m = mapHeader(head)
+  const id = 'm' + crypto.randomBytes(5).toString('hex')
+  const now = nowLocal()
+  const values = {
+    ts: now, name: f.name, phone: f.phone, service: f.service, message: f.message, first_source: f.channel,
+    id, status: 'New', assigned: f.assigned, followUp: f.followUp, updatedBy: user, updatedAt: now
+  }
+  const row = Array(head.length).fill('')
+  for (const [k, v] of Object.entries(values)) if (m[k] !== undefined) row[m[k]] = v
+  await api(`/values/${enc(quote(tab) + '!A1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+    method: 'POST',
+    body: { values: [row] }
+  })
+
+  const notes = [{ id, when: now, by: user, text: `Added by hand (${f.channel})`, kind: 'change' }]
+  if (f.note) notes.push({ id, when: now, by: user, text: f.note, kind: 'note' })
+  await appendNotes(notes)
+
+  return {
+    id, date: now, name: f.name, phone: f.phone, service: f.service, message: f.message,
+    first_source: f.channel, first_medium: '', first_campaign: '', first_landing: '',
+    last_source: '', last_medium: '', last_campaign: '',
+    status: 'New', assigned: f.assigned, followUp: f.followUp, updatedBy: user, updatedAt: now,
+    notes: notes.map(withoutId).reverse()
+  }
 }

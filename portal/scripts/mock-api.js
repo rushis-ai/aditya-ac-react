@@ -27,9 +27,21 @@ const leads = Array.from({ length: 60 }, (_, i) => {
     assigned: i % 4 === 0 ? '' : i % 2 ? 'demo' : 'helper',
     followUp: ['Contacted', 'Quoted'].includes(status) ? day((i % 9) - 3).slice(0, 10) : '',
     updatedBy: '', updatedAt: '',
-    notes: i % 5 === 1 ? [{ when: day(-1), by: 'demo', text: 'Called, will confirm tomorrow.' }] : []
+    notes: i % 5 === 1 ? [{ when: day(-1), by: 'demo', text: 'Called, will confirm tomorrow.', kind: 'note' }] : []
   }
 })
+const CHANNELS = ['Phone call', 'Walk-in', 'Referral', 'Other']
+const now = () => day(0, new Date().getHours())
+
+// Every couple of minutes a fake website lead "arrives", to try the new-lead alert
+let arrivals = 0
+setInterval(() => {
+  arrivals++
+  leads.unshift({
+    ...leads[leads.length - 1], id: 'live' + arrivals, date: now(), name: 'Website Visitor ' + arrivals,
+    status: 'New', assigned: '', followUp: '', notes: []
+  })
+}, 120_000).unref?.()
 
 let session = false
 
@@ -56,18 +68,41 @@ export default function mockApi() {
         }
         if (path === 'logout') { session = false; return send(200, { ok: true }) }
         if (!session) return send(401, { error: 'Please log in.' })
-        if (path === 'me') return send(200, { user: 'demo', users: ['demo', 'helper'], statuses: STATUSES })
+        if (path === 'me') return send(200, { user: 'demo', users: ['demo', 'helper'], statuses: STATUSES, channels: CHANNELS })
         if (path === 'leads') return send(200, { leads })
+        if (path === 'add') {
+          if (!b.name || String(b.phone || '').replace(/\D/g, '').length < 7) return send(400, { error: 'Enter a name and a valid phone number.' })
+          const when = now()
+          const lead = {
+            id: 'm' + Date.now(), date: when, name: b.name, phone: b.phone, service: b.service || '', message: b.message || '',
+            first_source: b.channel, first_medium: '', first_campaign: '', first_landing: '',
+            last_source: '', last_medium: '', last_campaign: '',
+            status: 'New', assigned: b.assigned || '', followUp: b.followUp || '', updatedBy: 'demo', updatedAt: when,
+            notes: [{ when, by: 'demo', text: `Added by hand (${b.channel})`, kind: 'change' }]
+          }
+          leads.unshift(lead)
+          return send(200, { lead })
+        }
         const lead = leads.find((l) => l.id === b.id)
         if (!lead) return send(404, { error: 'Lead not found.' })
         if (path === 'lead') {
           const changes = { ...b }
           delete changes.id
-          Object.assign(lead, changes, { updatedBy: 'demo', updatedAt: day(0, new Date().getHours()) })
-          return send(200, { lead: { ...changes, updatedBy: lead.updatedBy, updatedAt: lead.updatedAt } })
+          const when = now()
+          const label = { status: 'Status', assigned: 'Assigned to' }
+          const history = Object.entries(changes)
+            .filter(([k, v]) => lead[k] !== v)
+            .map(([k, v]) => ({
+              when, by: 'demo', kind: 'change',
+              text: k === 'followUp' ? (v ? `Follow-up set for ${v}` : 'Follow-up cleared') : `${label[k]}: ${lead[k] || 'nobody'} → ${v || 'nobody'}`
+            }))
+            .reverse()
+          Object.assign(lead, changes, { updatedBy: 'demo', updatedAt: when })
+          lead.notes.unshift(...history)
+          return send(200, { lead: { ...changes, updatedBy: lead.updatedBy, updatedAt: lead.updatedAt }, history })
         }
         if (path === 'note') {
-          const note = { when: day(0, new Date().getHours()), by: 'demo', text: b.text }
+          const note = { when: now(), by: 'demo', text: b.text, kind: 'note' }
           lead.notes.unshift(note)
           return send(200, { note })
         }

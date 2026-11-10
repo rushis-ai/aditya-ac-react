@@ -5,15 +5,37 @@ This is a separate host project from the main site, deployed from this `portal/`
 
 - **Today**: new leads nobody has called yet, follow-ups that are due, and the next 7 days.
 - **Leads**: search and filter by status, service, source, person or date, then export to CSV.
-- **Lead panel**: Call and WhatsApp buttons, status, assignee, follow-up date and a notes history.
+- **Lead panel**: Call and WhatsApp buttons, status, assignee, follow-up date, and notes with full history.
+  After a Call or WhatsApp tap it asks how it went (spoke to them / no answer / call back later).
+  One tap logs a note, moves a New lead to Contacted, and sets a follow-up for tomorrow when they didn't answer.
+- **+ New lead**: add phone calls, walk-ins and referrals by hand. It warns you if the number is already a lead.
+- **Alerts**: the bell in the header turns on desktop notifications for new leads while the portal is open.
+  The browser tab title also shows how many leads need action. For alerts when the portal is closed, see below.
 - **Reports**: counts and win rate by source, service and team member, per month.
 
 ## How the data is stored
 On first load the portal adds 6 columns to the right of the leads tab:
-`Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At`. It also creates a `Notes` tab.
+`Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At`. It also creates a `Notes` tab
+(`When, Lead ID, By, Note, Kind`). Every status, assignee and follow-up change is written there with
+`Kind = change`, so you can see who changed what, and when. Typed notes have `Kind = note`.
 Existing columns are never moved or changed, so the website form keeps working as before.
 Don't rename these new headers. You can sort or filter the Sheet by hand safely, because the portal
-finds rows by Lead ID, not by row number.
+finds rows by Lead ID, not by row number. Hand-added leads get the channel (e.g. `Phone call`) as their
+source, so they show up in the reports as their own source.
+
+## New-lead alerts (email / Telegram, even when the portal is closed)
+The website form is received by a Google Apps Script, so alerts are sent from there:
+1. Open the Apps Script that the website form posts to, and paste in the whole of `alerts/new-lead-alert.gs`.
+2. In its `doPost`, right after the line that adds the row to the sheet, add `notifyNewLead_();`.
+3. Go to **Project Settings → Script properties** and add:
+   - `ALERT_EMAILS`: comma-separated addresses.
+   - *Optional* `TELEGRAM_TOKEN` (from @BotFather) and `TELEGRAM_CHATS` (comma-separated chat IDs).
+     Telegram notifies you faster than email.
+   - *Optional* `PORTAL_URL`: added to each alert as a link.
+   - *Only if the script isn't attached to the Sheet:* `SHEET_ID`.
+   - *Only if leads aren't on the first tab:* `LEADS_TAB`.
+4. Run `testNewLeadAlert` once from the editor and approve the permissions. It sends an alert for the newest row.
+5. Go to **Deploy → Manage deployments → Edit → Version: New version → Deploy**. The form URL stays the same.
 
 ## Setup (one time)
 

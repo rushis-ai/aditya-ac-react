@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
     const saved = await updateLead(id, changes, user)
     if (!saved) return send(res, 404, { error: 'Lead not found. Refresh and try again.' })
-    send(res, 200, { lead: saved })
+    send(res, 200, saved)
   } catch (err) {
     fail(res, err)
   }
