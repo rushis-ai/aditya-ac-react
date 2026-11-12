@@ -16,8 +16,8 @@
 export const GA_ID = 'G-QB8RW3EG1Y' // Set to '' to turn tracking off.
 export const ADS_ID = 'AW-18520789335' // Google Ads tag, shares the same gtag.js load. Set to '' to turn off.
 // Label of the Google Ads "lead" conversion action (the part after the slash in AW-.../XXXX).
-// Fired only when the lead is confirmed saved. Leave '' until the action exists.
-export const ADS_LEAD_LABEL = ''
+// Fired only when the lead is confirmed saved ("Lead saved (website form)" action).
+export const ADS_LEAD_LABEL = 'SssGCNuS57YdENeis_9E'
 
 const LIVE = typeof window !== 'undefined' && GA_ID && !/^(localhost|127\.|\[::1\])/.test(location.hostname) &&
   !location.hostname.endsWith('.vercel.app')
