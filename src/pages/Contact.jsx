@@ -4,7 +4,7 @@ import Seo from '../components/Seo'
 import { pages } from '../content'
 import { breadcrumbSchema, localBusinessSchema } from '../content/schema'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
-import { track } from '../utils/analytics'
+import { track, trackLeadResult } from '../utils/analytics'
 import { PHONE_DISPLAY, PHONE_TEL, RATING, REVIEWS_URL } from '../config/business'
 import { useOpenNow, OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
 import { ArrowRight, CalendarCheck, CircleCheck, ShieldCheck, Star, Wrench, Zap, LoaderCircle, Lock, MapPin, Phone, Send } from 'lucide-react'
@@ -54,9 +54,9 @@ export default function Contact() {
 
     setStatus('sending')
     try {
-      await submitLead(fields)
+      const { confirmed } = await submitLead(fields)
       markLeadSent()
-      track('generate_lead', { form: 'contact', service: values.service })
+      trackLeadResult(confirmed, { form: 'contact', service: values.service })
       setStatus('sent')
       form.reset()
     } catch {

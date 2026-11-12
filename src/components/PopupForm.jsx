@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LogoMark } from './Logo'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
-import { track } from '../utils/analytics'
+import { track, trackLeadResult } from '../utils/analytics'
 import { CircleCheck, LoaderCircle, Lock, Phone } from 'lucide-react'
 import { IconTile, InlineIcon } from './Icons'
 
@@ -113,9 +113,9 @@ export default function PopupForm() {
 
     setStatus('sending')
     try {
-      await submitLead(fields)
+      const { confirmed } = await submitLead(fields)
       markLeadSent()
-      track('generate_lead', { form: 'popup', service: values.service })
+      trackLeadResult(confirmed, { form: 'popup', service: values.service })
       setStatus('sent')
     } catch {
       track('form_error', { form: 'popup' })

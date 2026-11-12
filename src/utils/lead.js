@@ -43,24 +43,41 @@ export function whatsappLink(d) {
 }
 
 // Sends a lead to the Sheet with source attribution attached.
-// Resolves on send, rejects on network failure / 15s timeout.
-// no-cors: the response can't be read, but the request still rejects on failure.
+// Resolves { data, confirmed }:
+//   confirmed: true   the script finished and sent back a readable reply that isn't an error
+//   confirmed: false  the request went out but the reply couldn't be read. Apps Script only
+//                     makes replies readable when doPost returns ContentService output; error
+//                     pages and "returned nothing" pages can't be read. Treat as "probably sent".
+// Rejects when the script reports an error, the device is offline, or after a 15s timeout.
+// text/plain keeps this a "simple" request (no preflight), so it reaches doPost exactly as before.
 export async function submitLead(fields) {
   const data = { ...fields, ...getAttribution() }
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), 15000)
+  let res
   try {
-    await fetch(SHEET_URL, {
+    res = await fetch(SHEET_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // only type allowed in no-cors
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(data),
       signal: ctrl.signal
     })
+  } catch (err) {
+    if (err.name === 'AbortError' || !navigator.onLine) throw err
+    return { data, confirmed: false } // unreadable reply (see above)
   } finally {
     clearTimeout(timer)
   }
-  return data
+
+  if (!res.ok) throw new Error(`Lead endpoint returned ${res.status}`)
+  const text = await res.text().catch(() => '')
+  let reply = null
+  try { reply = JSON.parse(text) } catch { /* plain-text reply */ }
+  const failed = reply
+    ? reply.ok === false || /^(error|fail)/i.test(String(reply.result ?? reply.status ?? ''))
+    : /^\s*(error|fail)/i.test(text)
+  if (failed) throw new Error(`Lead endpoint reported an error: ${text.slice(0, 200)}`)
+  return { data, confirmed: true }
 }
 
 // Remember a submission so the popup never shows to someone who already sent a lead

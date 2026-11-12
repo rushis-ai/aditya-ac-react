@@ -1,7 +1,8 @@
 // Google Analytics 4 (gtag.js), loaded only on the live site.
 //
 // Events sent (mark the first three as Key events in GA → Admin → Events):
-//   generate_lead    a lead form was sent          params: form (contact | popup), service
+//   generate_lead    a lead was confirmed saved    params: form (contact | popup), service
+//   lead_unconfirmed a lead was sent but the reply couldn't be read (not a conversion)
 //   click_call       a phone link was tapped       params: placement (header, hero, footer, ...), page
 //   click_whatsapp   a WhatsApp link was tapped    params: placement, page
 //   click_email      an email link was tapped      params: placement, page
@@ -13,6 +14,10 @@
 // To name a button's placement explicitly, add data-track="something" to it or a parent.
 
 export const GA_ID = 'G-QB8RW3EG1Y' // Set to '' to turn tracking off.
+export const ADS_ID = 'AW-18520789335' // Google Ads tag, shares the same gtag.js load. Set to '' to turn off.
+// Label of the Google Ads "lead" conversion action (the part after the slash in AW-.../XXXX).
+// Fired only when the lead is confirmed saved. Leave '' until the action exists.
+export const ADS_LEAD_LABEL = ''
 
 const LIVE = typeof window !== 'undefined' && GA_ID && !/^(localhost|127\.|\[::1\])/.test(location.hostname) &&
   !location.hostname.endsWith('.vercel.app')
@@ -26,6 +31,7 @@ export function initAnalytics() {
   window.gtag = function () { window.dataLayer.push(arguments) } // gtag needs the real arguments object
   window.gtag('js', new Date())
   window.gtag('config', GA_ID, { send_page_view: false })
+  if (ADS_ID) window.gtag('config', ADS_ID)
 
   const s = document.createElement('script')
   s.async = true
@@ -38,6 +44,14 @@ export function initAnalytics() {
 export function track(name, params = {}) {
   if (!LIVE || !window.gtag) return
   window.gtag('event', name, params)
+}
+
+// After submitLead(): generate_lead (and the Ads conversion) only when the save is confirmed.
+// An unconfirmed send gets its own event so it never inflates conversions.
+export function trackLeadResult(confirmed, params) {
+  if (!confirmed) return track('lead_unconfirmed', params)
+  track('generate_lead', params)
+  if (ADS_ID && ADS_LEAD_LABEL) track('conversion', { send_to: `${ADS_ID}/${ADS_LEAD_LABEL}` })
 }
 
 export function trackPageView() {
