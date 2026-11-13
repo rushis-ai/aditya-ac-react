@@ -448,3 +448,138 @@ img { max-width: 100%; display: block; }
 .post-faq details { border: 1.5px solid var(--gray-100); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 10px; }
 .post-faq summary { cursor: pointer; font-weight: 600; color: var(--navy); }
 .post-faq details p { margin-top: 10px; color: var(--gray-600); line-height: 1.7; }
+
+/* ---------- Ad landing page (/book) ---------- */
+.lp-header {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px clamp(16px, 5vw, 64px);
+}
+.lp-header .lp-header-call {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 100px;
+  background: var(--blue); color: var(--white);
+  font-weight: 600; font-size: 14px;
+}
+/* Wordmark is navy by default; lighten it on the dark hero */
+.lp-header > span > span > span:first-child { color: var(--white) !important; }
+.lp-header > span > span > span:last-child { color: var(--accent) !important; }
+
+.lp-hero { position: relative; background: var(--navy); padding: 104px clamp(16px, 5vw, 64px) 64px; overflow: hidden; overflow: clip; }
+.lp-hero::before {
+  content: ''; position: absolute; width: 520px; height: 520px; border-radius: 50%;
+  background: var(--blue); opacity: 0.08; top: -180px; right: -120px; pointer-events: none;
+}
+.lp-hero-inner {
+  position: relative; max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1.1fr 0.9fr; column-gap: clamp(32px, 5vw, 72px); row-gap: 0;
+  grid-template-areas: "head card" "rest card"; align-items: end;
+}
+.lp-head { grid-area: head; }
+.lp-card { grid-area: card; align-self: center; }
+.lp-rest { grid-area: rest; align-self: start; }
+.lp-head h1 {
+  font-family: var(--font-display); font-weight: 700; color: var(--white);
+  font-size: clamp(32px, 4.2vw, 54px); line-height: 1.12; margin: 18px 0 24px;
+}
+.lp-head h1 span { color: var(--accent); font-style: italic; }
+.lp-points { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.lp-points li { display: flex; align-items: flex-start; gap: 10px; color: var(--ice); font-size: 16px; line-height: 1.5; }
+.lp-points svg { color: #4ade80; margin-top: 2px; }
+.lp-rating { display: inline-flex; align-items: center; gap: 6px; color: var(--gray-400); font-size: 14px; }
+.lp-rating strong { color: var(--white); }
+
+.lp-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); scroll-margin-top: 24px; }
+.lp-card-body { display: flex; flex-direction: column; gap: 8px; padding: 28px 26px 22px; }
+.lp-card-body h2 { font-family: var(--font-display); font-size: 24px; color: var(--navy); }
+.lp-card-sub { font-size: 14px; color: var(--gray-600); margin-bottom: 6px; }
+.lp-card-body label { font-size: 12px; font-weight: 700; color: var(--gray-800); letter-spacing: 0.02em; margin-top: 6px; }
+.lp-card-body .form-field { padding: 13px 14px; }
+.lp-alt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--gray-100); }
+.lp-alt a {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; border-radius: var(--radius); border: 1.5px solid var(--gray-100);
+  font-size: 14px; font-weight: 600; color: var(--navy);
+}
+.lp-alt a:last-child { color: #15803d; }
+.lp-done { align-items: center; text-align: center; padding: 40px 26px; gap: 12px; }
+.lp-done p { font-size: 15px; color: var(--gray-600); }
+.lp-save {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%;
+  background: var(--gray-50); border-radius: var(--radius); padding: 16px; font-size: 14px; color: var(--gray-600);
+}
+.lp-save strong { color: var(--navy); }
+.lp-done .lp-alt { width: 100%; }
+
+/* Two-step form */
+.lp-stepno { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--blue); }
+.lp-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.lp-chip {
+  font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--navy);
+  background: var(--white); border: 1.5px solid var(--gray-100); border-radius: var(--radius);
+  padding: 14px 10px; min-height: 52px; cursor: pointer; text-align: center;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.lp-chip:hover, .lp-chip:focus-visible { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 5%, white); outline: none; }
+.lp-chip:active { transform: scale(0.98); }
+.lp-choice {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 14px; font-weight: 600; color: #15803d;
+}
+.lp-choice button {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--blue);
+}
+.lp-card-rating { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--gray-600); }
+.lp-card-rating strong { color: var(--navy); }
+/* Out-of-hours badge: calm blue, not a "closed" warning */
+.ct-status.lp-status-later { color: var(--ice); background: rgba(26,86,219,0.18); border-color: rgba(96,165,250,0.35); }
+
+.lp-steps-section { background: var(--gray-50); padding: 64px 0; }
+.lp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.lp-steps li {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+  background: var(--white); border: 1.5px solid var(--gray-100); border-radius: var(--radius-lg); padding: 24px 18px;
+}
+.lp-steps strong { font-family: var(--font-display); font-size: 17px; color: var(--navy); margin-top: 6px; }
+.lp-steps small { font-size: 14px; color: var(--gray-600); }
+
+.lp-final { background: var(--navy); text-align: center; padding: 64px 20px; }
+.lp-final h2 { font-family: var(--font-display); font-size: clamp(26px, 3.6vw, 38px); color: var(--white); margin-bottom: 10px; }
+.lp-final p { color: var(--gray-400); margin-bottom: 26px; }
+
+.lp-footer { background: var(--navy-mid); color: var(--gray-400); font-size: 13px; text-align: center; padding: 24px 20px; display: flex; flex-direction: column; gap: 6px; }
+.lp-footer svg { vertical-align: -2px; }
+.lp-footer a { color: var(--ice); }
+
+.lp-sticky { display: none; }
+
+@media (max-width: 900px) {
+  .lp-hero { padding: 88px 16px 48px; }
+  .lp-hero-inner { grid-template-columns: 1fr; grid-template-areas: "head" "card" "rest"; row-gap: 24px; }
+  .lp-rest { margin-top: 4px; }
+  .lp-head h1 { margin-bottom: 18px; }
+  .lp-points { margin-bottom: 18px; }
+  .lp-steps { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .lp-header-call span { display: none; }
+  .lp-header .lp-header-call { padding: 10px; }
+  .lp-points li { font-size: 15px; }
+  .lp-card-body { padding: 22px 18px 18px; }
+  .lp { padding-bottom: 72px; } /* room for the sticky bar */
+  .lp-sticky {
+    display: flex; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--white); box-shadow: 0 -4px 20px rgba(10,22,40,0.12);
+  }
+  .lp-sticky-call {
+    width: 52px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--radius); border: 1.5px solid var(--gray-100); color: var(--blue);
+  }
+  .lp-sticky-book {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center;
+    padding: 14px; border-radius: var(--radius); background: var(--blue); color: var(--white);
+    font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  }
+}

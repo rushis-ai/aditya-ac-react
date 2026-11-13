@@ -8,6 +8,8 @@
 //   click_email      an email link was tapped      params: placement, page
 //   form_error       a lead form failed to send    params: form
 //   popup_view       the lead popup opened
+//   form_start       step 1 of the landing-page form was tapped   params: form, problem
+//   click_save_contact  "Save our number" tapped on the landing-page thank-you screen
 //   page_view        sent by <PageViews /> after each route change, so the title is correct
 //
 // Buttons need no extra code: one click listener catches every tel:, wa.me and mailto: link.

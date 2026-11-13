@@ -21,6 +21,8 @@ const staticRoutes = [
   { url: '/contact', priority: '0.8', changefreq: 'monthly' },
   { url: '/blog', priority: '0.8', changefreq: 'weekly' },
 ]
+// Ad landing pages: prerendered for speed, kept out of the sitemap (they're noindex)
+const adRoutes = [{ url: '/book' }]
 const postRoutes = posts.map((p) => ({
   url: `/blog/${p.slug}`, priority: '0.7', changefreq: 'monthly',
   lastmod: p.updated || p.date, noindex: p.noindex,
@@ -47,7 +49,7 @@ function write(file, contents) {
 }
 
 // "/" -> index.html, "/blog/x" -> blog/x.html (served at /blog/x via cleanUrls)
-for (const r of [...staticRoutes, ...postRoutes]) {
+for (const r of [...staticRoutes, ...adRoutes, ...postRoutes]) {
   write(r.url === '/' ? 'index.html' : `${r.url.slice(1)}.html`, page(r.url))
 }
 write('404.html', page('/__not-found__'))
@@ -101,4 +103,4 @@ write('rss.xml', rss)
 // The server bundle was only needed for this step
 fs.rmSync(path.join(root, 'dist-ssr'), { recursive: true, force: true })
 
-console.log(`Prerendered ${staticRoutes.length + postRoutes.length} pages + 404, sitemap.xml, robots.txt, rss.xml`)
+console.log(`Prerendered ${staticRoutes.length + adRoutes.length + postRoutes.length} pages + 404, sitemap.xml, robots.txt, rss.xml`)
