@@ -2,21 +2,8 @@ import { motion } from 'framer-motion'
 import { RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
 import { Star } from 'lucide-react'
 import { Stars } from './Icons'
+import { reviews } from '../config/reviews'
 
-const reviews = [
-  {
-    text: 'Very professional and fast service. My AC was fixed within an hour of calling. Highly recommend!',
-    name: 'Rajesh P.'
-  },
-  {
-    text: 'Best AC service in Chandkheda. Honest pricing and genuine parts. Won\'t go anywhere else.',
-    name: 'Priya M.'
-  },
-  {
-    text: 'Called late evening and they still came and serviced my AC. Great work and very polite staff.',
-    name: 'Suresh K.'
-  },
-]
 
 export default function Testimonials() {
   return (
