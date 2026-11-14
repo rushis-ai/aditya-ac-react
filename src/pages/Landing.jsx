@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import Seo from '../components/Seo'
 import Logo from '../components/Logo'
-import { m } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { reviews } from '../config/reviews'
 import { site } from '../content'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
@@ -90,9 +90,11 @@ const FAQS = [
   ['What are your hours?', `We're open ${OPENS_TEXT} to ${CLOSES_TEXT}. Book any time and we'll call you during opening hours.`],
 ]
 
-// Fade-and-rise when a section scrolls into view (MotionConfig in App handles reduced motion)
+// Fade-and-rise when a section scrolls into view; no movement for visitors who ask for reduced motion
 const Reveal = ({ children, delay = 0, className, as = 'div' }) => {
-  const Tag = m[as]
+  const reduce = useReducedMotion()
+  const Tag = motion[as]
+  if (reduce) { const Plain = as; return <Plain className={className}>{children}</Plain> }
   return (
     <Tag
       className={className}
