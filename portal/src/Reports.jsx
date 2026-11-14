@@ -3,19 +3,21 @@ import DateRange from './DateRange.jsx'
 import LeadsTable from './LeadsTable.jsx'
 import {
   SERVICES, CLOSED, serviceLabel, sourceOf, inRange, rangeLabel, daysBetween, shiftDay, parseDay, dateStr,
-  todayStr, monthLabel, fmtDate, downloadCsv, rangeFrom
+  todayStr, monthLabel, fmtDate, downloadCsv, rangeFrom, fmtMoney, firstResponseMins, fmtDuration, median
 } from './lib.js'
 
 const STAGES = ['New', 'Contacted', 'Quoted', 'Won', 'Lost', 'Spam']
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0)
+const wonValue = (l) => (l.status === 'Won' && typeof l.value === 'number' ? l.value : 0)
 
 // ---------- grouping ----------
 function breakdown(leads, keyOf, labelOf) {
   const m = new Map()
   for (const l of leads) {
     const k = keyOf(l) || '(unknown)'
-    const r = m.get(k) || { k, label: labelOf ? labelOf(k) : k, total: 0, ...Object.fromEntries(STAGES.map((s) => [s, 0])) }
+    const r = m.get(k) || { k, label: labelOf ? labelOf(k) : k, total: 0, revenue: 0, ...Object.fromEntries(STAGES.map((s) => [s, 0])) }
     r.total++
+    r.revenue += wonValue(l)
     r[l.status] = (r[l.status] || 0) + 1
     m.set(k, r)
   }
@@ -129,6 +131,7 @@ function BreakdownTable({ title, rows, total, onPick, picked, firstCol }) {
               <th scope="col" className="num">Lost</th>
               <th scope="col" className="num">Spam</th>
               <th scope="col" className="num">Win rate</th>
+              <th scope="col" className="num">Revenue</th>
             </tr>
           </thead>
           <tbody>
@@ -154,6 +157,7 @@ function BreakdownTable({ title, rows, total, onPick, picked, firstCol }) {
                 <td className="num">{r.Lost}</td>
                 <td className="num">{r.Spam}</td>
                 <td className="num strong">{r.total - r.Spam ? pct(r.Won, r.total - r.Spam) + '%' : '—'}</td>
+                <td className="num">{r.revenue ? fmtMoney(r.revenue) : <span className="muted">—</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -191,6 +195,19 @@ export default function Reports({ leads, onOpen }) {
   const real = total - spam
   const days = daysBetween(from, to)
 
+  // Revenue = job value of Won leads; the average uses only Won leads that have a value
+  const revenue = scoped.reduce((s, l) => s + wonValue(l), 0)
+  const valued = scoped.filter((l) => l.status === 'Won' && typeof l.value === 'number').length
+
+  // Speed to lead: website leads only, spam left out
+  const waits = scoped.filter((l) => l.status !== 'Spam').map(firstResponseMins).filter((m) => m !== null)
+  const medianWait = median(waits)
+  const within1h = waits.filter((m) => m <= 60).length
+
+  // Why leads were lost
+  const lost = scoped.filter((l) => l.status === 'Lost')
+  const reasons = breakdown(lost, (l) => l.lostReason || '(no reason given)')
+
   const services = breakdown(scoped, (l) => l.service, (k) => (SERVICES[k] ? serviceLabel(k) : k))
   const sources = breakdown(scoped, (l) => sourceOf(l))
   const trend = buckets(scoped, from, to)
@@ -214,6 +231,10 @@ export default function Reports({ leads, onOpen }) {
           sub={`${(total / Math.max(1, days)).toFixed(1)} per day`} />
         <Kpi label="Won" value={won} delta={prev ? won - prev.filter((l) => l.status === 'Won').length : null}
           sub={real ? `${pct(won, real)}% win rate` : 'No leads yet'} />
+        <Kpi label="Revenue" value={fmtMoney(revenue) || '₹0'}
+          sub={valued ? `${fmtMoney(Math.round(revenue / valued))} average job` : 'Add a job value to Won leads'} />
+        <Kpi label="First response" value={fmtDuration(medianWait)}
+          sub={waits.length ? `median · ${pct(within1h, waits.length)}% reached within 1 hour` : 'No contacted website leads yet'} />
         <Kpi label="Still open" value={open} sub={`${uncontacted} not contacted yet`} />
         <Kpi label="Spam" value={spam} sub={total ? `${pct(spam, total)}% of all leads` : '—'} />
       </div>
@@ -230,6 +251,26 @@ export default function Reports({ leads, onOpen }) {
         <BreakdownTable title="By service" firstCol="Service" rows={services} total={total} onPick={setService} picked={service} />
       )}
       {total > 0 && <BreakdownTable title="By source" firstCol="Source" rows={sources} total={total} />}
+
+      {lost.length > 0 && (
+        <section className="card">
+          <div className="card-head inline">
+            <h2>Why leads were lost <span className="count-pill">{lost.length}</span></h2>
+            <span className="muted small">set when a lead is marked Lost</span>
+          </div>
+          <ul className="reasons">
+            {reasons.map((r) => (
+              <li key={r.k}>
+                <span>{r.label}</span>
+                <span className="share">
+                  <span className="share-track"><span className="share-fill" style={{ width: `${pct(r.total, lost.length)}%` }} /></span>
+                  <span className="share-pct">{r.total} · {pct(r.total, lost.length)}%</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="card flush">
         <div className="card-head inline">

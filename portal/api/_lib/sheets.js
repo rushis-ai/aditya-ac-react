@@ -5,13 +5,16 @@
 //   NOTES_TAB              = optional, default "Notes" (created automatically)
 //   PORTAL_TZ              = optional, default Asia/Kolkata
 // On first use it adds the portal's columns to the right of the existing ones
-// (Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At). Existing columns are never moved.
+// (Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At, Value, Lost Reason).
+// Columns added later (Value, Lost Reason) are appended the same way. Existing columns are never moved.
 import crypto from 'node:crypto'
 
 export const STATUSES = ['New', 'Contacted', 'Quoted', 'Won', 'Lost', 'Spam']
 // How a hand-added lead reached us (stored as its source)
 export const CHANNELS = ['Phone call', 'Walk-in', 'Referral', 'Other']
-const CRM_COLS = ['Lead ID', 'Status', 'Assigned To', 'Follow-up', 'Updated By', 'Updated At']
+// Why a lead was lost (picked when the status is set to Lost)
+export const LOST_REASONS = ['Price too high', 'Went with someone else', 'No response', 'Outside service area', 'Only enquiring', 'Other']
+const CRM_COLS = ['Lead ID', 'Status', 'Assigned To', 'Follow-up', 'Updated By', 'Updated At', 'Value', 'Lost Reason']
 const NOTES_TAB = process.env.NOTES_TAB || 'Notes'
 // Kind: "note" (typed by a person) or "change" (status / assignee / follow-up history)
 const NOTES_HEAD = ['When', 'Lead ID', 'By', 'Note', 'Kind']
@@ -36,7 +39,18 @@ const FIELDS = {
   assigned: ['assignedto'],
   followUp: ['followup'],
   updatedBy: ['updatedby'],
-  updatedAt: ['updatedat']
+  updatedAt: ['updatedat'],
+  value: ['value', 'jobvalue', 'dealvalue'],
+  lostReason: ['lostreason']
+}
+
+// Job value in rupees: a whole number, or '' when not set
+export const money = (v) => {
+  if (typeof v === 'number') return Number.isFinite(v) ? Math.round(v) : ''
+  const s = String(v ?? '').replace(/[^\d.]/g, '') // drops ₹, commas and spaces
+  if (!/\d/.test(s)) return ''
+  const n = Number(s)
+  return Number.isFinite(n) ? Math.round(n) : ''
 }
 
 const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -168,7 +182,7 @@ async function readLeadsTab(tab) {
   const d = await api(`/values/${enc(quote(tab))}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`)
   const rows = d.values || []
   const m = mapHeader(rows[0] || [])
-  for (const f of ['id', 'status', 'assigned', 'followUp', 'updatedBy', 'updatedAt']) {
+  for (const f of ['id', 'status', 'assigned', 'followUp', 'updatedBy', 'updatedAt', 'value', 'lostReason']) {
     if (m[f] === undefined) { ready = null; throw new Error('Portal columns are missing; they will be re-added on the next request') }
   }
   return { rows, m }
@@ -221,6 +235,8 @@ export async function loadLeads() {
       followUp: cellDate(get('followUp')).slice(0, 10),
       updatedBy: str('updatedBy'),
       updatedAt: cellDate(get('updatedAt')),
+      value: money(get('value')),
+      lostReason: str('lostReason'),
       notes: (notesById[id] || []).reverse()
     })
   }
@@ -228,11 +244,14 @@ export async function loadLeads() {
   return leads.reverse() // newest first
 }
 
-const FIELD_LABEL = { status: 'Status', assigned: 'Assigned to', followUp: 'Follow-up' }
+const FIELD_LABEL = { status: 'Status', assigned: 'Assigned to', followUp: 'Follow-up', value: 'Job value', lostReason: 'Lost reason' }
+const rupees = (n) => (n === '' ? 'not set' : '₹' + Number(n).toLocaleString('en-IN'))
 
 // One line of history, e.g. "Status: New → Contacted"
 function changeText(f, from, to) {
   if (f === 'followUp') return to ? `Follow-up set for ${to}` : 'Follow-up cleared'
+  if (f === 'value') return `${FIELD_LABEL.value}: ${rupees(from)} → ${rupees(to)}`
+  if (f === 'lostReason') return to ? `${FIELD_LABEL.lostReason}: ${to}` : 'Lost reason cleared'
   return `${FIELD_LABEL[f]}: ${from || 'nobody'} → ${to || 'nobody'}`
 }
 
@@ -246,7 +265,7 @@ async function appendNotes(rows) {
 }
 const withoutId = (n) => ({ when: n.when, by: n.by, text: n.text, kind: n.kind })
 
-// changes: { status?, assigned?, followUp? } (already validated by the caller)
+// changes: { status?, assigned?, followUp?, value?, lostReason? } (already validated by the caller)
 // Returns { lead: saved fields, history: entries written for what actually changed, newest first }, or null
 export async function updateLead(id, changes, user) {
   const tab = await leadsTab()
@@ -258,7 +277,9 @@ export async function updateLead(id, changes, user) {
   const old = {
     status: STATUSES.includes(prevStatus) ? prevStatus : 'New',
     assigned: String(row[m.assigned] ?? '').trim(),
-    followUp: cellDate(row[m.followUp] ?? '').slice(0, 10)
+    followUp: cellDate(row[m.followUp] ?? '').slice(0, 10),
+    value: money(row[m.value]),
+    lostReason: String(row[m.lostReason] ?? '').trim()
   }
   const cell = (f) => `${quote(tab)}!${colLetter(m[f])}${r + 1}`
   const updatedAt = nowLocal()
@@ -306,6 +327,7 @@ export async function createLead(f, user) {
     first_source: f.channel, first_medium: '', first_campaign: '', first_landing: '',
     last_source: '', last_medium: '', last_campaign: '',
     status: 'New', assigned: f.assigned, followUp: f.followUp, updatedBy: user, updatedAt: now,
+    value: '', lostReason: '',
     notes: notes.map(withoutId).reverse()
   }
 }

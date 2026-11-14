@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { StatusBadge } from './LeadRow.jsx'
-import { addDays, fmtDate, serviceLabel, telLink, todayStr, waLink } from './lib.js'
+import { LOST_REASONS, addDays, fmtDate, fmtMoney, money, serviceLabel, telLink, todayStr, waGreeting, waLink } from './lib.js'
 
 function Field({ label, children }) {
   return (
@@ -27,10 +27,14 @@ const OUTCOMES = {
   }
 }
 
-export default function LeadPanel({ lead, prompt, users, statuses, onUpdate, onNote, onClose }) {
+// Reminder chips for a past customer's next service
+const NEXT_SERVICE = [['In 3 months', 91], ['In 6 months', 182], ['In 1 year', 365]]
+
+export default function LeadPanel({ lead, prompt, users, statuses, lostReasons = LOST_REASONS, onUpdate, onNote, onClose }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState(prompt && lead.phone ? prompt : null)
+  const [value, setValue] = useState(lead.value === '' || lead.value == null ? '' : String(lead.value))
   const closeRef = useRef(null)
 
   useEffect(() => {
@@ -63,6 +67,21 @@ export default function LeadPanel({ lead, prompt, users, statuses, onUpdate, onN
   }
 
   const save = (k) => (e) => onUpdate(lead.id, { [k]: e.target.value })
+
+  // Moving a lead out of Lost also clears its lost reason
+  function saveStatus(e) {
+    const status = e.target.value
+    onUpdate(lead.id, status !== 'Lost' && lead.lostReason ? { status, lostReason: '' } : { status })
+  }
+
+  // Saved when the field loses focus or Enter is pressed, not on every keystroke
+  function saveValue() {
+    const v = money(value)
+    setValue(v === '' ? '' : String(v))
+    if (v !== (lead.value ?? '')) onUpdate(lead.id, { value: v })
+  }
+
+  const won = lead.status === 'Won'
   const ask = outcome && OUTCOMES[outcome]
 
   return (
@@ -80,7 +99,7 @@ export default function LeadPanel({ lead, prompt, users, statuses, onUpdate, onN
           {lead.phone && (
             <div className="actions">
               <a className="btn primary" href={telLink(lead.phone)} onClick={() => setOutcome('call')}>Call {lead.phone}</a>
-              <a className="btn wa" href={waLink(lead.phone)} target="_blank" rel="noopener noreferrer" onClick={() => setOutcome('wa')}>WhatsApp</a>
+              <a className="btn wa" href={waLink(lead.phone, waGreeting(lead))} target="_blank" rel="noopener noreferrer" onClick={() => setOutcome('wa')}>WhatsApp</a>
             </div>
           )}
 
@@ -104,9 +123,29 @@ export default function LeadPanel({ lead, prompt, users, statuses, onUpdate, onN
           <div className="controls">
             <label>
               Status <StatusBadge status={lead.status} />
-              <select value={lead.status} onChange={save('status')}>
+              <select value={lead.status} onChange={saveStatus}>
                 {statuses.map((s) => <option key={s}>{s}</option>)}
               </select>
+            </label>
+            {lead.status === 'Lost' && (
+              <label>
+                Why was it lost?
+                <select value={lead.lostReason || ''} onChange={save('lostReason')}>
+                  <option value="">Pick a reason</option>
+                  {lostReasons.map((r) => <option key={r}>{r}</option>)}
+                </select>
+              </label>
+            )}
+            <label>
+              {won ? 'Job value (₹)' : 'Quote / job value (₹)'}
+              <input
+                type="text" inputMode="numeric" placeholder="e.g. 2500" value={value}
+                onChange={(e) => setValue(e.target.value.replace(/[^\d,₹ ]/g, ''))}
+                onBlur={saveValue}
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                aria-describedby="value-hint"
+              />
+              <span id="value-hint" className="muted small">{won ? 'Counts as revenue in the report' : 'Shows up as revenue once the lead is Won'}{lead.value !== '' && lead.value != null ? ` · saved ${fmtMoney(lead.value)}` : ''}</span>
             </label>
             <label>
               Assigned to
@@ -117,13 +156,19 @@ export default function LeadPanel({ lead, prompt, users, statuses, onUpdate, onN
               </select>
             </label>
             <label>
-              Follow-up date
+              {won ? 'Next service reminder' : 'Follow-up date'}
               <input type="date" value={lead.followUp} onChange={save('followUp')} />
             </label>
             <div className="chips">
-              <button className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(1) })}>Tomorrow</button>
-              <button className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(3) })}>In 3 days</button>
-              <button className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(7) })}>Next week</button>
+              {won ? NEXT_SERVICE.map(([label, n]) => (
+                <button key={n} className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(n) })}>{label}</button>
+              )) : (
+                <>
+                  <button className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(1) })}>Tomorrow</button>
+                  <button className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(3) })}>In 3 days</button>
+                  <button className="chip" onClick={() => onUpdate(lead.id, { followUp: addDays(7) })}>Next week</button>
+                </>
+              )}
               {lead.followUp && <button className="chip" onClick={() => onUpdate(lead.id, { followUp: '' })}>Clear</button>}
             </div>
           </div>

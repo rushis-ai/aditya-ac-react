@@ -69,10 +69,51 @@ export function rangeLabel([from, to]) {
   return `${from ? fmtDate(from, { time: false }) : 'Start'} – ${to ? fmtDate(to, { time: false }) : 'today'}`
 }
 
-// Badge on the Today tab: uncalled new leads + follow-ups due
+// A past customer whose next-service reminder date is set (a Won lead with a follow-up)
+export const isRepeat = (l) => l.status === 'Won' && Boolean(l.followUp)
+
+// Badge on the Today tab: uncalled new leads + follow-ups due + repeat-service reminders due
 export function dueCount(leads) {
   const t = todayStr()
-  return leads.filter((l) => (l.status === 'New' && !l.followUp) || (isOpen(l) && l.followUp && l.followUp <= t)).length
+  return leads.filter((l) => (l.status === 'New' && !l.followUp) || ((isOpen(l) || isRepeat(l)) && l.followUp && l.followUp <= t)).length
+}
+
+// Fallback if the server doesn't send its list
+export const LOST_REASONS = ['Price too high', 'Went with someone else', 'No response', 'Outside service area', 'Only enquiring', 'Other']
+
+// Typed value -> whole rupees, or '' (same rule as the server)
+export function money(v) {
+  if (typeof v === 'number') return Number.isFinite(v) ? Math.round(v) : ''
+  const s = String(v ?? '').replace(/[^\d.]/g, '')
+  if (!/\d/.test(s)) return ''
+  const n = Number(s)
+  return Number.isFinite(n) ? Math.round(n) : ''
+}
+
+// 12500 -> "₹12,500"; '' -> ''
+export const fmtMoney = (n) => (n === '' || n == null ? '' : '₹' + Number(n).toLocaleString('en-IN'))
+
+// Minutes from receiving a website lead to the first call, note or change by the team.
+// null for hand-added leads (they're logged after the call) and leads nobody has touched yet.
+export function firstResponseMins(l) {
+  if (!l.date || l.notes.some((n) => n.text.startsWith('Added by hand'))) return null
+  const first = l.notes.map((n) => n.when).filter((w) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(w) && w >= l.date).sort()[0]
+  return first ? Math.max(0, Math.round((new Date(first) - new Date(l.date)) / 6e4)) : null
+}
+
+// 45 -> "45 min", 150 -> "2.5 h", 3000 -> "2.1 days"
+export function fmtDuration(m) {
+  if (m == null) return '—'
+  if (m < 60) return `${m} min`
+  if (m < 1440) return `${Math.round(m / 6) / 10} h`
+  return `${Math.round(m / 144) / 10} days`
+}
+
+export function median(nums) {
+  if (!nums.length) return null
+  const s = [...nums].sort((a, b) => a - b)
+  const h = s.length >> 1
+  return s.length % 2 ? s[h] : Math.round((s[h - 1] + s[h]) / 2)
 }
 
 // "2026-11-09T18:05" -> "9 Nov, 6:05 pm" (year shown only if not this year)
@@ -105,7 +146,15 @@ export function sourceOf(l) {
 
 const digits = (p) => String(p).replace(/\D/g, '')
 export const telLink = (p) => 'tel:' + (digits(p).length === 10 ? '+91' + digits(p) : '+' + digits(p))
-export const waLink = (p) => 'https://wa.me/' + (digits(p).length === 10 ? '91' + digits(p) : digits(p))
+export const waLink = (p, text = '') =>
+  'https://wa.me/' + (digits(p).length === 10 ? '91' + digits(p) : digits(p)) + (text ? '?text=' + encodeURIComponent(text) : '')
+
+// First WhatsApp message, pre-filled so it only needs a quick check before sending
+export function waGreeting(l) {
+  const first = l.name.trim().split(/\s+/)[0]
+  const svc = SERVICES[l.service] && l.service !== 'other' ? ` about ${SERVICES[l.service]}` : ''
+  return `Hi${first ? ' ' + first : ''}, thank you for your enquiry${svc}. When would be a good time to call you?`
+}
 
 // Same number, ignoring spaces and the country code (compares the last 10 digits)
 export function samePhone(a, b) {
@@ -121,7 +170,8 @@ export function downloadCsv(leads) {
   const cols = [
     ['Received', (l) => l.date.replace('T', ' ')], ['Name', (l) => l.name], ['Phone', (l) => l.phone],
     ['Service', (l) => serviceLabel(l.service)], ['Message', (l) => l.message], ['Status', (l) => l.status],
-    ['Assigned To', (l) => l.assigned], ['Follow-up', (l) => l.followUp], ['First Source', (l) => l.first_source],
+    ['Assigned To', (l) => l.assigned], ['Follow-up', (l) => l.followUp], ['Value', (l) => l.value ?? ''],
+    ['Lost Reason', (l) => l.lostReason || ''], ['First Source', (l) => l.first_source],
     ['First Medium', (l) => l.first_medium], ['Last Source', (l) => l.last_source], ['Last Medium', (l) => l.last_medium],
     ['Campaign', (l) => l.last_campaign || l.first_campaign], ['Latest Note', (l) => typedNotes(l)[0]?.text || '']
   ]

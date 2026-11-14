@@ -18,7 +18,7 @@ export default function LeadRow({ lead, onOpen, follow = false }) {
           <StatusBadge status={lead.status} />
           <span className={'small ' + (overdue ? 'danger' : 'muted')}>
             {follow && lead.followUp
-              ? (overdue ? 'Overdue · ' : 'Follow-up · ') + fmtDate(lead.followUp, { time: false })
+              ? (overdue ? 'Overdue · ' : lead.status === 'Won' ? 'Service due · ' : 'Follow-up · ') + fmtDate(lead.followUp, { time: false })
               : fmtDate(lead.date)}
           </span>
         </span>

@@ -11,11 +11,18 @@ This is a separate host project from the main site, deployed from this `portal/`
 - **+ New lead**: add phone calls, walk-ins and referrals by hand. It warns you if the number is already a lead.
 - **Alerts**: the bell in the header turns on desktop notifications for new leads while the portal is open.
   The browser tab title also shows how many leads need action. For alerts when the portal is closed, see below.
-- **Reports**: counts and win rate by source, service and team member, per month.
+- **Job value**: type the quote or job amount on a lead. Won leads count as revenue in the report.
+- **Lost reason**: marking a lead Lost asks why (price, went elsewhere, no response…). The report shows the reasons.
+- **Repeat service**: on a Won lead, set the next-service reminder (3 months, 6 months or 1 year). When it's due, the
+  customer shows up in **Today → Repeat service due**.
+- **WhatsApp**: the WhatsApp button opens a ready-made first message with the customer's name and service.
+- **Reports**: counts, win rate, revenue and average job by source and service; how fast new website leads are
+  first contacted (median, and the share reached within 1 hour); and why leads were lost.
 
 ## How the data is stored
 On first load the portal adds 6 columns to the right of the leads tab:
-`Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At`. It also creates a `Notes` tab
+`Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At, Value, Lost Reason`.
+On a Sheet set up before Value and Lost Reason existed, those two are added the same way on the next load. It also creates a `Notes` tab
 (`When, Lead ID, By, Note, Kind`). Every status, assignee and follow-up change is written there with
 `Kind = change`, so you can see who changed what, and when. Typed notes have `Kind = note`.
 Existing columns are never moved or changed, so the website form keeps working as before.

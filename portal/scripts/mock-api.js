@@ -3,6 +3,7 @@
 const STATUSES = ['New', 'Contacted', 'Quoted', 'Won', 'Lost', 'Spam']
 const SERVICES = ['ac-installation', 'ac-repair', 'ac-cleaning', 'gas-refill', 'refrigeration', 'amc', 'other']
 const SOURCES = [['google', 'organic'], ['google', 'cpc'], ['(direct)', '(none)'], ['facebook', 'cpc'], ['chatgpt.com', 'ai']]
+const LOST_REASONS = ['Price too high', 'Went with someone else', 'No response', 'Outside service area', 'Only enquiring', 'Other']
 const NAMES = ['Test User A', 'Test User B', 'Test User C', 'Test User D', 'Test User E', 'Test User F', 'Test User G', 'Test User H']
 const pad = (n) => String(n).padStart(2, '0')
 const day = (offset, h = 10) => {
@@ -25,9 +26,12 @@ const leads = Array.from({ length: 60 }, (_, i) => {
     last_source: src, last_medium: med, last_campaign: '(not set)',
     status,
     assigned: i % 4 === 0 ? '' : i % 2 ? 'demo' : 'helper',
-    followUp: ['Contacted', 'Quoted'].includes(status) ? day((i % 9) - 3).slice(0, 10) : '',
+    followUp: ['Contacted', 'Quoted'].includes(status) ? day((i % 9) - 3).slice(0, 10) : status === 'Won' && i % 2 ? day((i % 12) - 2).slice(0, 10) : '',
     updatedBy: '', updatedAt: '',
-    notes: i % 5 === 1 ? [{ when: day(-1), by: 'demo', text: 'Called, will confirm tomorrow.', kind: 'note' }] : []
+    value: ['Quoted', 'Won'].includes(status) ? 1500 + (i % 7) * 750 : '',
+    lostReason: status === 'Lost' && i % 3 ? LOST_REASONS[i % LOST_REASONS.length] : '',
+    // First contact a few minutes to a day after the lead came in (feeds the First response figure)
+    notes: status === 'New' ? [] : [{ when: day(-Math.floor(i * 1.3), 9 + (i % 9) + (i % 4 ? 0 : 5)).replace(/:\d\d$/, ':59'), by: 'demo', text: 'Call: spoke to them', kind: 'note' }]
   }
 })
 const CHANNELS = ['Phone call', 'Walk-in', 'Referral', 'Other']
@@ -39,7 +43,7 @@ setInterval(() => {
   arrivals++
   leads.unshift({
     ...leads[leads.length - 1], id: 'live' + arrivals, date: now(), name: 'Website Visitor ' + arrivals,
-    status: 'New', assigned: '', followUp: '', notes: []
+    status: 'New', assigned: '', followUp: '', value: '', lostReason: '', notes: []
   })
 }, 120_000).unref?.()
 
@@ -68,7 +72,7 @@ export default function mockApi() {
         }
         if (path === 'logout') { session = false; return send(200, { ok: true }) }
         if (!session) return send(401, { error: 'Please log in.' })
-        if (path === 'me') return send(200, { user: 'demo', users: ['demo', 'helper'], statuses: STATUSES, channels: CHANNELS })
+        if (path === 'me') return send(200, { user: 'demo', users: ['demo', 'helper'], statuses: STATUSES, channels: CHANNELS, lostReasons: LOST_REASONS })
         if (path === 'leads') return send(200, { leads })
         if (path === 'add') {
           if (!b.name || String(b.phone || '').replace(/\D/g, '').length < 7) return send(400, { error: 'Enter a name and a valid phone number.' })
@@ -77,7 +81,7 @@ export default function mockApi() {
             id: 'm' + Date.now(), date: when, name: b.name, phone: b.phone, service: b.service || '', message: b.message || '',
             first_source: b.channel, first_medium: '', first_campaign: '', first_landing: '',
             last_source: '', last_medium: '', last_campaign: '',
-            status: 'New', assigned: b.assigned || '', followUp: b.followUp || '', updatedBy: 'demo', updatedAt: when,
+            status: 'New', assigned: b.assigned || '', followUp: b.followUp || '', updatedBy: 'demo', updatedAt: when, value: '', lostReason: '',
             notes: [{ when, by: 'demo', text: `Added by hand (${b.channel})`, kind: 'change' }]
           }
           leads.unshift(lead)
@@ -90,11 +94,15 @@ export default function mockApi() {
           delete changes.id
           const when = now()
           const label = { status: 'Status', assigned: 'Assigned to' }
+          const rupees = (n) => (n === '' ? 'not set' : '₹' + Number(n).toLocaleString('en-IN'))
           const history = Object.entries(changes)
             .filter(([k, v]) => lead[k] !== v)
             .map(([k, v]) => ({
               when, by: 'demo', kind: 'change',
-              text: k === 'followUp' ? (v ? `Follow-up set for ${v}` : 'Follow-up cleared') : `${label[k]}: ${lead[k] || 'nobody'} → ${v || 'nobody'}`
+              text: k === 'followUp' ? (v ? `Follow-up set for ${v}` : 'Follow-up cleared')
+                : k === 'value' ? `Job value: ${rupees(lead.value)} → ${rupees(v)}`
+                : k === 'lostReason' ? (v ? `Lost reason: ${v}` : 'Lost reason cleared')
+                : `${label[k]}: ${lead[k] || 'nobody'} → ${v || 'nobody'}`
             }))
             .reverse()
           Object.assign(lead, changes, { updatedBy: 'demo', updatedAt: when })

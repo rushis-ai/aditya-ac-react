@@ -142,7 +142,7 @@ export default function App() {
       if (d.history?.length) prependNotes(id, d.history)
       flash('Saved')
     } catch (err) {
-      if (before) patch(id, { status: before.status, assigned: before.assigned, followUp: before.followUp })
+      if (before) patch(id, { status: before.status, assigned: before.assigned, followUp: before.followUp, value: before.value, lostReason: before.lostReason })
       handle(err)
     } finally {
       saving.current--
@@ -267,6 +267,7 @@ export default function App() {
           prompt={prompt}
           users={me.users}
           statuses={me.statuses}
+          lostReasons={me.lostReasons}
           onUpdate={update}
           onNote={addNote}
           onClose={closePanel}

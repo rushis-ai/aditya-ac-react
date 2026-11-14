@@ -4,5 +4,8 @@ import mockApi from './scripts/mock-api.js'
 
 // `npm run demo` serves fake data so the UI can be tried without Google credentials
 export default defineConfig({
-  plugins: [react(), process.env.PORTAL_DEMO === '1' && mockApi()].filter(Boolean)
+  plugins: [react(), process.env.PORTAL_DEMO === '1' && mockApi()].filter(Boolean),
+  // The portal uses plain CSS. An explicit (empty) PostCSS config stops Vite from
+  // picking up the main site's config in the parent folder.
+  css: { postcss: {} }
 })
