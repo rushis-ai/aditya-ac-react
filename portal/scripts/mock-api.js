@@ -35,6 +35,23 @@ const leads = Array.from({ length: 60 }, (_, i) => {
   }
 })
 const CHANNELS = ['Phone call', 'Walk-in', 'Referral', 'Other']
+
+// A few Won leads already have an invoice (one issued, one draft)
+const fy = () => { const d = new Date(); const y = d.getMonth() >= 3 ? d.getFullYear() : d.getFullYear() - 1; return String(y % 100).padStart(2, '0') + String((y + 1) % 100).padStart(2, '0') }
+let invoiceSeq = 0
+let invoiceIds = 0
+const blankInvoice = (lead, by = 'demo') => ({
+  id: 'i' + String(++invoiceIds).padStart(10, '0'), number: '', status: 'Draft', leadId: lead.id,
+  customer: lead.name, phone: lead.phone, address: '', items: [{ desc: 'Service visit', qty: 1, rate: lead.value || 1500 }],
+  discount: 0, total: lead.value || 1500, createdAt: lead.date, createdBy: by,
+  issuedAt: '', issuedBy: '', cancelledAt: '', cancelledBy: '', cancelReason: ''
+})
+for (const l of leads) l.invoices = []
+leads.filter((l) => l.status === 'Won').slice(0, 2).forEach((l, i) => {
+  const inv = blankInvoice(l)
+  if (i === 0) Object.assign(inv, { number: `AAC-${fy()}-${String(++invoiceSeq).padStart(4, '0')}`, status: 'Issued', issuedAt: l.date, issuedBy: 'demo' })
+  l.invoices.push(inv)
+})
 const now = () => day(0, new Date().getHours())
 
 // Every couple of minutes a fake website lead "arrives", to try the new-lead alert
@@ -43,7 +60,7 @@ setInterval(() => {
   arrivals++
   leads.unshift({
     ...leads[leads.length - 1], id: 'live' + arrivals, date: now(), name: 'Website Visitor ' + arrivals,
-    status: 'New', assigned: '', followUp: '', value: '', lostReason: '', notes: []
+    status: 'New', assigned: '', followUp: '', value: '', lostReason: '', notes: [], invoices: []
   })
 }, 120_000).unref?.()
 
@@ -72,7 +89,7 @@ export default function mockApi() {
         }
         if (path === 'logout') { session = false; return send(200, { ok: true }) }
         if (!session) return send(401, { error: 'Please log in.' })
-        if (path === 'me') return send(200, { user: 'demo', users: ['demo', 'helper'], statuses: STATUSES, channels: CHANNELS, lostReasons: LOST_REASONS })
+        if (path === 'me') return send(200, { user: 'demo', users: ['demo', 'helper'], statuses: STATUSES, channels: CHANNELS, lostReasons: LOST_REASONS, canIssue: true })
         if (path === 'leads') return send(200, { leads })
         if (path === 'add') {
           if (!b.name || String(b.phone || '').replace(/\D/g, '').length < 7) return send(400, { error: 'Enter a name and a valid phone number.' })
@@ -81,11 +98,49 @@ export default function mockApi() {
             id: 'm' + Date.now(), date: when, name: b.name, phone: b.phone, service: b.service || '', message: b.message || '',
             first_source: b.channel, first_medium: '', first_campaign: '', first_landing: '',
             last_source: '', last_medium: '', last_campaign: '',
-            status: 'New', assigned: b.assigned || '', followUp: b.followUp || '', updatedBy: 'demo', updatedAt: when, value: '', lostReason: '',
+            status: 'New', assigned: b.assigned || '', followUp: b.followUp || '', updatedBy: 'demo', updatedAt: when, value: '', lostReason: '', invoices: [],
             notes: [{ when, by: 'demo', text: `Added by hand (${b.channel})`, kind: 'change' }]
           }
           leads.unshift(lead)
           return send(200, { lead })
+        }
+        if (path === 'invoice') {
+          const when = now()
+          const rupees = (n) => '₹' + Number(n).toLocaleString('en-IN')
+          let inv = b.id ? leads.flatMap((l) => l.invoices).find((i) => i.id === b.id) : null
+          const owner = leads.find((l) => l.id === (inv ? inv.leadId : b.leadId))
+          if (!owner) return send(404, { error: 'Lead not found.' })
+          const history = []
+          if (b.action === 'save' || b.action === 'issue') {
+            if (inv && inv.status !== 'Draft') return send(409, { error: 'This invoice is already issued and can’t be changed.' })
+            const items = (b.items || []).map((it) => ({ desc: String(it.desc || '').trim(), qty: Number(it.qty), rate: Number(String(it.rate).replace(/[^\d]/g, '')) || 0 }))
+            if (!b.customer || !items.length || items.some((it) => !it.desc || !(it.qty >= 1))) return send(400, { error: 'Enter the customer and every item’s description and quantity.' })
+            const subtotal = items.reduce((t, it) => t + it.qty * it.rate, 0)
+            const discount = Number(String(b.discount || '').replace(/[^\d]/g, '')) || 0
+            if (discount > subtotal) return send(400, { error: 'The discount can’t be more than the items’ total.' })
+            if (!inv) {
+              inv = blankInvoice(owner)
+              owner.invoices.unshift(inv)
+              if (b.action === 'save') history.push({ when, by: 'demo', kind: 'change', text: `Invoice draft created (${rupees(subtotal - discount)})` })
+            }
+            Object.assign(inv, { customer: b.customer, phone: b.phone || '', address: b.address || '', items, discount, total: subtotal - discount })
+            if (b.action === 'issue') {
+              if (inv.total <= 0) return send(400, { error: 'The total must be more than ₹0 to issue.' })
+              Object.assign(inv, { number: `AAC-${fy()}-${String(++invoiceSeq).padStart(4, '0')}`, status: 'Issued', issuedAt: when, issuedBy: 'demo' })
+              history.push({ when, by: 'demo', kind: 'change', text: `Invoice ${inv.number} issued (${rupees(inv.total)})` })
+            }
+          } else if (b.action === 'discard' && inv?.status === 'Draft') {
+            inv.status = 'Discarded'
+            owner.invoices = owner.invoices.filter((i) => i !== inv)
+            history.push({ when, by: 'demo', kind: 'change', text: 'Invoice draft discarded' })
+          } else if (b.action === 'cancel' && inv?.status === 'Issued' && b.reason) {
+            Object.assign(inv, { status: 'Cancelled', cancelledAt: when, cancelledBy: 'demo', cancelReason: b.reason })
+            history.push({ when, by: 'demo', kind: 'change', text: `Invoice ${inv.number} cancelled: ${b.reason}` })
+          } else {
+            return send(400, { error: 'That can’t be done to this invoice.' })
+          }
+          owner.notes.unshift(...history)
+          return send(200, { invoice: { ...inv }, history })
         }
         const lead = leads.find((l) => l.id === b.id)
         if (!lead) return send(404, { error: 'Lead not found.' })

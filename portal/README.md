@@ -19,6 +19,12 @@ This is a separate host project from the main site, deployed from this `portal/`
 - **Reports**: counts, win rate, revenue and average job by source and service; how fast new website leads are
   first contacted (median, and the share reached within 1 hour); and why leads were lost.
 
+- **Invoices**: on a Won lead, **+ Create invoice** opens a form filled in from the lead (name, phone, service,
+  job value). Add items and an optional discount, then **Save draft**. Anyone can make and edit drafts.
+  Only invoice admins (`INVOICE_ADMINS`) can **Issue** one: it gets the next number (`AAC-2627-0001`: business initials,
+  financial year, running count that restarts each April) and is locked. To fix an issued invoice, cancel it
+  with a reason (its number stays used) and make a new one. Every step is written to the lead's history.
+
 ## How the data is stored
 On first load the portal adds 6 columns to the right of the leads tab:
 `Lead ID, Status, Assigned To, Follow-up, Updated By, Updated At, Value, Lost Reason`.
@@ -26,7 +32,9 @@ On a Sheet set up before Value and Lost Reason existed, those two are added the 
 (`When, Lead ID, By, Note, Kind`). Every status, assignee and follow-up change is written there with
 `Kind = change`, so you can see who changed what, and when. Typed notes have `Kind = note`.
 Existing columns are never moved or changed, so the website form keeps working as before.
-Don't rename these new headers. You can sort or filter the Sheet by hand safely, because the portal
+Invoices live in their own `Invoices` tab, created on first use. Items are stored as JSON in one cell, and
+customer details are copied onto the invoice, so later changes to the lead don't alter issued invoices.
+Don't edit issued rows by hand. Don't rename these new headers. You can sort or filter the Sheet by hand safely, because the portal
 finds rows by Lead ID, not by row number. Hand-added leads get the channel (e.g. `Phone call`) as their
 source, so they show up in the reports as their own source.
 
@@ -81,6 +89,9 @@ Then build `PORTAL_USERS` as JSON, using lowercase usernames:
 | `PORTAL_USERS` | The JSON from step 2 |
 | `LEADS_TAB` | *Optional.* Name of the tab the form writes to, if it isn't the first tab |
 | `PORTAL_TZ` | *Optional.* Defaults to `Asia/Kolkata` |
+| `INVOICE_ADMINS` | *Optional.* Comma-separated usernames who can issue and cancel invoices. Defaults to `rushi` |
+| `INVOICE_PREFIX` | *Optional.* Invoice number prefix. Defaults to `AAC` (business initials). Set it before the first invoice |
+| `INVOICE_FY_START` | *Optional.* Month the financial year starts (1–12). Defaults to `4` (April) |
 
 4. Click **Deploy**.
 

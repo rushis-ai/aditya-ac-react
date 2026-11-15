@@ -182,6 +182,31 @@ export default function App() {
     }
   }, [flash, handle, openLead])
 
+  // Returns { invoice } or { error }
+  const invoiceAction = useCallback(async (body) => {
+    saving.current++
+    try {
+      const d = await call('invoice', { method: 'POST', body })
+      const inv = d.invoice
+      setLeads((ls) => ls.map((l) => {
+        if (l.id !== inv.leadId) return l
+        const others = (l.invoices || []).filter((i) => i.id !== inv.id)
+        const exists = others.length !== (l.invoices || []).length
+        const invoices = inv.status === 'Discarded' ? others
+          : exists ? (l.invoices || []).map((i) => (i.id === inv.id ? inv : i))
+          : [inv, ...others]
+        return { ...l, invoices, notes: [...(d.history || []), ...l.notes] }
+      }))
+      flash({ save: 'Draft saved', issue: `Invoice ${inv.number} issued`, discard: 'Draft discarded', cancel: 'Invoice cancelled' }[body.action])
+      return { invoice: inv }
+    } catch (err) {
+      if (err instanceof AuthError) handle(err)
+      return { error: err.message }
+    } finally {
+      saving.current--
+    }
+  }, [flash, handle])
+
   async function enableAlerts() {
     const p = await Notification.requestPermission()
     setAlerts(p)
@@ -270,6 +295,8 @@ export default function App() {
           lostReasons={me.lostReasons}
           onUpdate={update}
           onNote={addNote}
+          canIssue={Boolean(me.canIssue)}
+          onInvoice={invoiceAction}
           onClose={closePanel}
         />
       )}

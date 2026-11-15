@@ -402,3 +402,44 @@ thead th {
   .spin { animation: none; }
   .toast, .bar { transition: none; }
 }
+
+/* ---------- invoices (inside the lead panel) ---------- */
+.i-draft { --c: var(--gray-600); }
+.i-issued { --c: var(--s-won); }
+.i-cancelled { --c: var(--s-spam); }
+.invoices { display: grid; gap: 10px; }
+.invoices-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.invoices-head h3 { margin: 0; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.inv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.inv-row {
+  width: 100%; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px;
+  padding: 10px 14px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px;
+  cursor: pointer; text-align: left; font-variant-numeric: tabular-nums;
+}
+.inv-row:hover { border-color: var(--blue); }
+.inv-no { font-weight: 600; color: var(--navy); }
+.inv-amt { font-weight: 600; color: var(--navy); min-width: 72px; text-align: right; }
+.inv-form { display: grid; gap: 14px; padding: 16px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200); }
+.inv-form input:disabled, .inv-form textarea:disabled { background: var(--gray-100); color: var(--navy); }
+.inv-items { display: grid; gap: 8px; justify-items: start; }
+.inv-item { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 52px 88px 76px 32px; gap: 6px; align-items: center; }
+.inv-item input { min-height: 36px; padding: 6px 8px; }
+.inv-item .num { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; color: var(--navy); }
+.inv-item .btn.icon.sm { width: 32px; min-height: 32px; font-size: 13px; padding: 0; }
+.inv-item-head, .inv-item-head .num { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray-400); }
+.inv-items.locked .inv-item { grid-template-columns: minmax(0, 1fr) 52px 88px 76px; }
+.inv-totals { margin: 0; display: grid; gap: 6px; justify-self: end; min-width: 220px; font-variant-numeric: tabular-nums; }
+.inv-totals > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.inv-totals dt { color: var(--gray-600); font-size: 14px; }
+.inv-totals dd { margin: 0; color: var(--navy); font-weight: 600; }
+.inv-totals dd input { width: 100px; min-height: 34px; padding: 5px 8px; text-align: right; }
+.inv-totals .grand { border-top: 1px solid var(--gray-200); padding-top: 6px; }
+.inv-totals .grand dt, .inv-totals .grand dd { font-size: 16px; font-weight: 700; color: var(--navy); }
+.inv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.inv-actions .link.danger { margin-left: auto; color: var(--danger); }
+@media (max-width: 560px) {
+  .inv-item { grid-template-columns: minmax(0, 1fr) 44px 76px 32px; }
+  .inv-items.locked .inv-item { grid-template-columns: minmax(0, 1fr) 44px 76px; }
+  .inv-item .num { display: none; }
+  .inv-totals { justify-self: stretch; }
+}

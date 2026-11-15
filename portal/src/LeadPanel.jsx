@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { StatusBadge } from './LeadRow.jsx'
+import InvoiceSection from './Invoices.jsx'
 import { LOST_REASONS, addDays, fmtDate, fmtMoney, money, serviceLabel, telLink, todayStr, waGreeting, waLink } from './lib.js'
 
 function Field({ label, children }) {
@@ -30,7 +31,7 @@ const OUTCOMES = {
 // Reminder chips for a past customer's next service
 const NEXT_SERVICE = [['In 3 months', 91], ['In 6 months', 182], ['In 1 year', 365]]
 
-export default function LeadPanel({ lead, prompt, users, statuses, lostReasons = LOST_REASONS, onUpdate, onNote, onClose }) {
+export default function LeadPanel({ lead, prompt, users, statuses, lostReasons = LOST_REASONS, canIssue = false, onUpdate, onNote, onInvoice, onClose }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState(prompt && lead.phone ? prompt : null)
@@ -172,6 +173,8 @@ export default function LeadPanel({ lead, prompt, users, statuses, lostReasons =
               {lead.followUp && <button className="chip" onClick={() => onUpdate(lead.id, { followUp: '' })}>Clear</button>}
             </div>
           </div>
+
+          {(won || lead.invoices?.length > 0) && <InvoiceSection lead={lead} canIssue={canIssue} onInvoice={onInvoice} />}
 
           <section>
             <h3>Notes and history</h3>

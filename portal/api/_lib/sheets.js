@@ -54,8 +54,8 @@ export const money = (v) => {
 }
 
 const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
-const quote = (tab) => `'${tab.replace(/'/g, "''")}'`
-const enc = encodeURIComponent
+export const quote = (tab) => `'${tab.replace(/'/g, "''")}'`
+export const enc = encodeURIComponent
 
 export function colLetter(i) {
   let s = ''
@@ -117,7 +117,7 @@ async function accessToken() {
   return token
 }
 
-async function api(path, { method = 'GET', body } = {}) {
+export async function api(path, { method = 'GET', body } = {}) {
   if (!process.env.SHEET_ID) throw new Error('SHEET_ID is not set')
   const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${process.env.SHEET_ID}${path}`, {
     method,
@@ -129,7 +129,7 @@ async function api(path, { method = 'GET', body } = {}) {
   return d
 }
 
-const writeCells = (data) => api('/values:batchUpdate', { method: 'POST', body: { valueInputOption: 'RAW', data } })
+export const writeCells = (data) => api('/values:batchUpdate', { method: 'POST', body: { valueInputOption: 'RAW', data } })
 
 // ---------- one-time setup per server instance ----------
 async function setup() {
@@ -162,7 +162,7 @@ async function setup() {
 }
 
 let ready = null
-const leadsTab = () => (ready ||= setup().catch((e) => { ready = null; throw e }))
+export const leadsTab = () => (ready ||= setup().catch((e) => { ready = null; throw e }))
 
 function mapHeader(head) {
   const keys = head.map(norm)
@@ -256,7 +256,7 @@ function changeText(f, from, to) {
 }
 
 // rows: [{ id, when, by, text, kind }]
-async function appendNotes(rows) {
+export async function appendNotes(rows) {
   if (!rows.length) return
   await api(`/values/${enc(quote(NOTES_TAB) + '!A:E')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
     method: 'POST',
