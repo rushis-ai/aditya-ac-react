@@ -5,9 +5,23 @@ import Seo from '../components/Seo'
 import { Stars } from '../components/Icons'
 import { hubBookUrl } from '../content'
 import { breadcrumbSchema, faqSchema, localBusinessSchema, serviceSchema } from '../content/schema'
-import { RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
+import { RATING, REVIEWS_URL } from '../config/business'
 import { reviews } from '../config/reviews'
 import { track } from '../utils/analytics'
+
+// <picture> for a hub image: src is the path without size/extension (see public/uploads/hubs)
+function HubImage({ img, className, eager = false, sizes = '(max-width: 700px) 100vw, 600px' }) {
+  if (!img) return null
+  return (
+    <picture className={className}>
+      <source type="image/webp" srcSet={`${img.src}-640.webp 640w, ${img.src}-1200.webp 1200w`} sizes={sizes} />
+      <img
+        src={`${img.src}-1200.jpg`} alt={img.alt} width="1200" height="800"
+        loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : undefined} decoding="async"
+      />
+    </picture>
+  )
+}
 
 // Service hub page (/ac-installation etc.). Content lives in content/hubs/<slug>.json.
 // One action only: every button goes to the booking page with this service preselected,
@@ -45,35 +59,35 @@ export default function Hub({ hub }) {
         ]}
       />
 
-      {/* Hero + quick answer card */}
-      <section className="hub-hero">
+      {/* Hero (photo behind, text on the left) + quick answer strip */}
+      <section className={`hub-hero${hub.images?.hero ? ' has-photo' : ''}`}>
+        <HubImage img={hub.images?.hero} className="hub-hero-media" eager sizes="(max-width: 900px) 100vw, 60vw" />
         <div className="container hub-hero-inner">
-          <div>
-            <nav className="hub-crumbs" aria-label="Breadcrumb">
-              <Link to="/">Home</Link> <span aria-hidden="true">›</span> <Link to="/services">Services</Link>{' '}
-              <span aria-hidden="true">›</span> <span aria-current="page">{hub.navLabel}</span>
-            </nav>
-            <span className="hub-eyebrow">{hub.eyebrow}</span>
-            <h1>{hub.h1}</h1>
-            <p className="hub-sub">{hub.sub}</p>
-            <div className="hub-hero-actions" ref={heroRef}>
-              {cta('hero')}
-              <a className="hub-rating" href={REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-                <Stars size={15} /> <strong>{RATING}</strong> · {REVIEW_COUNT} Google reviews
-              </a>
-            </div>
+          <nav className="hub-crumbs" aria-label="Breadcrumb">
+            <Link to="/">Home</Link> <span aria-hidden="true">›</span> <Link to="/services">Services</Link>{' '}
+            <span aria-hidden="true">›</span> <span aria-current="page">{hub.navLabel}</span>
+          </nav>
+          <span className="hub-eyebrow">{hub.eyebrow}</span>
+          <h1>{hub.h1}</h1>
+          <p className="hub-sub">{hub.sub}</p>
+          <div className="hub-hero-actions" ref={heroRef}>
+            {cta('hero')}
+            <a className="hub-rating" href={REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+              <Stars size={15} /> <strong>{RATING}</strong> on Google
+            </a>
           </div>
-          <aside className="hub-facts" aria-label="At a glance">
-            <h2>At a glance</h2>
-            <dl>
-              {hub.facts.map(([k, v]) => (
-                <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
-              ))}
-            </dl>
-            <p>Indicative prices. Confirmed before any work starts.</p>
-          </aside>
         </div>
       </section>
+      <div className="container">
+        <aside className="hub-facts" aria-label="At a glance">
+          <dl>
+            {hub.facts.map(([k, v]) => (
+              <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
+            ))}
+          </dl>
+          <p>Indicative prices, confirmed before any work starts.</p>
+        </aside>
+      </div>
 
       {/* Prices */}
       <section className="section hub-prices" id="prices">
@@ -102,11 +116,14 @@ export default function Hub({ hub }) {
       <section className="section hub-includes">
         <div className="container hub-narrow">
           <h2 className="hub-h2">{hub.includesTitle}</h2>
-          <ul className="hub-checks">
-            {hub.includes.map((t) => (
-              <li key={t}><Check size={18} aria-hidden="true" /> {t}</li>
-            ))}
-          </ul>
+          <div className={hub.images?.includes ? 'hub-split' : undefined}>
+            <HubImage img={hub.images?.includes} className="hub-figure" />
+            <ul className="hub-checks">
+              {hub.includes.map((t) => (
+                <li key={t}><Check size={18} aria-hidden="true" /> {t}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -114,6 +131,7 @@ export default function Hub({ hub }) {
       <section className="section hub-jobs">
         <div className="container hub-narrow">
           <h2 className="hub-h2">Installation, removal and moving</h2>
+          <HubImage img={hub.images?.jobs} className="hub-figure hub-figure-wide" sizes="(max-width: 900px) 100vw, 860px" />
           <div className="hub-job-grid">
             {hub.jobs.map((j) => (
               <article key={j.title} className="hub-job">
