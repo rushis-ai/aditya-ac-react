@@ -118,6 +118,8 @@ const serviceFromUrl = () => {
   const s = new URLSearchParams(location.search).get('service')
   return SERVICES.some(([v]) => v === s) ? s : ''
 }
+// Visitors arriving from a service hub page (?from=hub-...) get a booking-only page, no call buttons
+const fromHubUrl = () => (new URLSearchParams(location.search).get('from') || '').startsWith('hub-')
 
 // "Save our number" on the thank-you screen, so the callback isn't ignored as an unknown caller
 const VCARD = `data:text/vcard;charset=utf-8,${encodeURIComponent(
@@ -135,6 +137,7 @@ export default function Landing() {
   const [errors, setErrors] = useState({})
   const [lastData, setLastData] = useState(null)
   const urlService = useSyncExternalStore(noSubscribe, serviceFromUrl, () => '')
+  const fromHub = useSyncExternalStore(noSubscribe, fromHubUrl, () => false)
   const [problem, setProblem] = useState(null) // key from PROBLEMS
   const [changing, setChanging] = useState(false) // visitor tapped "Change" on a URL-preselected service
 
@@ -190,7 +193,9 @@ export default function Landing() {
     try {
       const { confirmed } = await submitLead({ ...values, message })
       markLeadSent()
-      trackLeadResult(confirmed, { form: 'landing', service: values.service })
+      // from=hub-<slug> when the visitor came from a service hub page
+      const from = new URLSearchParams(location.search).get('from') || undefined
+      trackLeadResult(confirmed, { form: 'landing', service: values.service, from })
       setStatus('sent')
     } catch {
       track('form_error', { form: 'landing' })
@@ -211,9 +216,11 @@ export default function Landing() {
       {/* Slim header: logo + call, no menu, so visitors stay on the offer */}
       <header className="lp-header">
         <Logo size={36} />
-        <a href={`tel:${PHONE_TEL}`} className="lp-header-call" data-track="lp-header">
-          <InlineIcon icon={Phone} size={16} /> <span>{PHONE_DISPLAY}</span>
-        </a>
+        {!fromHub && (
+          <a href={`tel:${PHONE_TEL}`} className="lp-header-call" data-track="lp-header">
+            <InlineIcon icon={Phone} size={16} /> <span>{PHONE_DISPLAY}</span>
+          </a>
+        )}
       </header>
 
       {/* Hero + form. On phones the form comes straight after the headline. */}
@@ -453,9 +460,11 @@ export default function Landing() {
 
       {/* Phones: action bar always in reach */}
       <div className={`lp-sticky${showSticky ? ' is-visible' : ''}`} data-track="lp-sticky" aria-hidden={!showSticky} inert={!showSticky}>
-        <a href={`tel:${PHONE_TEL}`} className="lp-sticky-call" aria-label={`Call ${PHONE_DISPLAY}`}>
-          <InlineIcon icon={Phone} size={20} />
-        </a>
+        {!fromHub && (
+          <a href={`tel:${PHONE_TEL}`} className="lp-sticky-call" aria-label={`Call ${PHONE_DISPLAY}`}>
+            <InlineIcon icon={Phone} size={20} />
+          </a>
+        )}
         <a href="#book" className="lp-sticky-book" onClick={goToForm}>
           <span>Call Me Back</span>
           <small><Star size={11} fill="#fbbf24" color="#fbbf24" aria-hidden="true" /> {RATING} · {REVIEW_COUNT} Google reviews</small>

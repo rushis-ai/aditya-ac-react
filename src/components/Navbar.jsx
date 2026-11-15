@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { PHONE_TEL } from '../config/business'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
-import { Phone } from 'lucide-react'
+import { ArrowRight, Phone } from 'lucide-react'
 import { InlineIcon } from './Icons'
 
-export default function Navbar() {
+// cta: optional { to, label } that replaces the call button (hub pages book instead of calling)
+export default function Navbar({ cta = null }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
@@ -58,11 +59,17 @@ export default function Navbar() {
         </ul>
 
         {/* Call Button */}
-        <a href={`tel:${PHONE_TEL}`} className="btn-primary desktop-nav" style={{
-          padding: '9px 20px', fontSize: 14
-        }}>
-          <InlineIcon icon={Phone} size={17} /> Call Now
-        </a>
+        {cta ? (
+          <Link to={cta.to} className="btn-primary desktop-nav" style={{ padding: '9px 20px', fontSize: 14 }}>
+            {cta.label} <InlineIcon icon={ArrowRight} size={17} />
+          </Link>
+        ) : (
+          <a href={`tel:${PHONE_TEL}`} className="btn-primary desktop-nav" style={{
+            padding: '9px 20px', fontSize: 14
+          }}>
+            <InlineIcon icon={Phone} size={17} /> Call Now
+          </a>
+        )}
 
         {/* Hamburger */}
         <button onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} style={{
@@ -91,9 +98,15 @@ export default function Navbar() {
               padding: '6px 0'
             }}>{label}</Link>
           ))}
-          <a href={`tel:${PHONE_TEL}`} className="btn-primary" style={{ textAlign: 'center' }}>
-            <InlineIcon icon={Phone} size={17} /> Call Now
-          </a>
+          {cta ? (
+            <Link to={cta.to} className="btn-primary" style={{ textAlign: 'center' }}>
+              {cta.label} <InlineIcon icon={ArrowRight} size={17} />
+            </Link>
+          ) : (
+            <a href={`tel:${PHONE_TEL}`} className="btn-primary" style={{ textAlign: 'center' }}>
+              <InlineIcon icon={Phone} size={17} /> Call Now
+            </a>
+          )}
         </div>
       )}
 

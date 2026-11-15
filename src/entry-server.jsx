@@ -2,7 +2,7 @@
 import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 import App from './App.jsx'
-import { getPosts, site } from './content'
+import { getPosts, site, hubs as allHubs } from './content'
 
 export function render(url) {
   return renderToString(
@@ -17,3 +17,5 @@ export const posts = getPosts().map(({ slug, date, updated, noindex, title, desc
 }))
 
 export { site }
+
+export const hubs = allHubs.map(({ slug }) => ({ slug }))

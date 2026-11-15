@@ -66,3 +66,25 @@ export function faqSchema(faq) {
     })),
   }
 }
+
+// One hub page = one Service offered by the business, with its price ranges as offers
+export function serviceSchema(hub) {
+  const offers = hub.prices.flatMap((g) => g.rows).map(([name, range]) => {
+    const [low, high] = range.replace(/[₹,]/g, '').match(/\d+/g).map(Number)
+    return {
+      '@type': 'Offer', name, priceCurrency: 'INR',
+      priceSpecification: { '@type': 'PriceSpecification', priceCurrency: 'INR', minPrice: low, ...(high ? { maxPrice: high } : {}) },
+    }
+  })
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: hub.h1,
+    serviceType: hub.navLabel,
+    description: hub.description,
+    url: absUrl(`/${hub.slug}`),
+    provider: { '@id': absUrl('/#business') },
+    areaServed: { '@type': 'City', name: business.city },
+    offers,
+  }
+}

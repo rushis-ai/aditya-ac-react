@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const ssrEntry = path.join(root, 'dist-ssr', 'entry-server.js')
 
-const { render, posts, site } = await import(pathToFileURL(ssrEntry).href)
+const { render, posts, hubs, site } = await import(pathToFileURL(ssrEntry).href)
 const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8')
 const siteUrl = site.siteUrl.replace(/\/$/, '')
 const today = new Date().toISOString().slice(0, 10)
@@ -20,6 +20,8 @@ const staticRoutes = [
   { url: '/services', priority: '0.9', changefreq: 'monthly' },
   { url: '/contact', priority: '0.8', changefreq: 'monthly' },
   { url: '/blog', priority: '0.8', changefreq: 'weekly' },
+  // Service hub pages (content/hubs/*.json)
+  ...hubs.map((h) => ({ url: `/${h.slug}`, priority: '0.9', changefreq: 'monthly' })),
 ]
 // Ad landing pages: prerendered for speed, kept out of the sitemap (they're noindex)
 const adRoutes = [{ url: '/book' }]

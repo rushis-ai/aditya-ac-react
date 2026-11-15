@@ -42,3 +42,10 @@ export const absUrl = (path = '/') => {
 
 export const formatDate = (iso) =>
   new Date(iso + 'T00:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+
+// Service hub pages (/ac-installation etc.), one JSON file each in content/hubs
+const hubModules = import.meta.glob('../../content/hubs/*.json', { eager: true, import: 'default' })
+export const hubs = Object.values(hubModules)
+export const getHub = (slug) => hubs.find((h) => h.slug === slug) || null
+// Hubs send visitors to the booking page with the service preselected
+export const hubBookUrl = (hub) => `/book?service=${hub.service}&from=hub-${hub.slug}`
