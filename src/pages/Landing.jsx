@@ -6,7 +6,7 @@ import { reviews } from '../config/reviews'
 import { site } from '../content'
 import { SERVICES, validateLead, whatsappLink, submitLead, markLeadSent } from '../utils/lead'
 import { track, trackLeadResult } from '../utils/analytics'
-import { PHONE_DISPLAY, PHONE_TEL, RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
+import { PHONE_DISPLAY, PHONE_TEL, RATING, REVIEWS_URL } from '../config/business'
 import { useOpenNow, OPENS_TEXT, CLOSES_TEXT } from '../utils/hours'
 import {
   ArrowLeft, ChevronDown, CircleCheck, Check, CircleHelp, MousePointerClick, PhoneCall, Wrench, Droplets, LoaderCircle, Lock, MapPin, PackagePlus, Phone,
@@ -244,7 +244,7 @@ export default function Landing() {
             <a href={REVIEWS_URL} target="_blank" rel="noreferrer" className="lp-badge">
               <GoogleG size={22} />
               <Stars size={16} />
-              <span><strong>{RATING}</strong> · {REVIEW_COUNT} Google reviews</span>
+              <span><strong>{RATING}</strong> on Google</span>
             </a>
           </div>
 
@@ -344,7 +344,7 @@ export default function Landing() {
                 </p>
                 <a href={REVIEWS_URL} target="_blank" rel="noreferrer" className="lp-card-rating">
                   <Star size={14} fill="#f59e0b" color="#f59e0b" aria-hidden="true" />
-                  <strong>{RATING}</strong> on Google · {REVIEW_COUNT} reviews
+                  <strong>{RATING}</strong> on Google
                 </a>
               </form>
             )}
@@ -420,7 +420,7 @@ export default function Landing() {
             ))}
           </Reveal>
           <a href={REVIEWS_URL} target="_blank" rel="noreferrer" className="lp-reviews-all">
-            <GoogleG size={20} /> <strong>{RATING}</strong> from {REVIEW_COUNT} Google reviews · <span>Read all</span>
+            <GoogleG size={20} /> <strong>{RATING}</strong> on Google · <span>Read all reviews</span>
           </a>
         </div>
       </section>
@@ -467,7 +467,7 @@ export default function Landing() {
         )}
         <a href="#book" className="lp-sticky-book" onClick={goToForm}>
           <span>Call Me Back</span>
-          <small><Star size={11} fill="#fbbf24" color="#fbbf24" aria-hidden="true" /> {RATING} · {REVIEW_COUNT} Google reviews</small>
+          <small><Star size={11} fill="#fbbf24" color="#fbbf24" aria-hidden="true" /> {RATING} on Google</small>
         </a>
       </div>
     </div>

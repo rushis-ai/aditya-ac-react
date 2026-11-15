@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import HeroVisual from './HeroVisual'
-import { PHONE_TEL, RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
+import { PHONE_TEL, RATING, REVIEWS_URL } from '../config/business'
 import { Phone, Star } from 'lucide-react'
 import { InlineIcon } from './Icons'
 
@@ -48,7 +48,7 @@ export default function Hero() {
             letterSpacing: '0.02em',
             textDecoration: 'none'
           }}>
-          <Star size={14} fill="#f59e0b" color="#f59e0b" aria-hidden="true" /> {RATING} on Google · {REVIEW_COUNT} Reviews
+          <Star size={14} fill="#f59e0b" color="#f59e0b" aria-hidden="true" /> {RATING} on Google
         </motion.a>
 
         {/* Heading */}

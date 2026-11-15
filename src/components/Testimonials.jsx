@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { RATING, REVIEW_COUNT, REVIEWS_URL } from '../config/business'
+import { RATING, REVIEWS_URL } from '../config/business'
 import { Star } from 'lucide-react'
 import { Stars } from './Icons'
 import { reviews } from '../config/reviews'
@@ -54,7 +54,7 @@ export default function Testimonials() {
             fontSize: 18, fontWeight: 700,
             color: 'var(--navy)', textDecoration: 'none'
           }}>
-            <Star size={18} fill="#f59e0b" color="#f59e0b" aria-hidden="true" style={{ verticalAlign: -2 }} /> {RATING} on Google · {REVIEW_COUNT} Reviews · <span style={{ color: 'var(--blue)' }}>Read all →</span>
+            <Star size={18} fill="#f59e0b" color="#f59e0b" aria-hidden="true" style={{ verticalAlign: -2 }} /> {RATING} on Google · <span style={{ color: 'var(--blue)' }}>Read all →</span>
           </a>
         </div>
       </div>
