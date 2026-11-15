@@ -443,3 +443,54 @@ thead th {
   .inv-item .num { display: none; }
   .inv-totals { justify-self: stretch; }
 }
+
+/* ---------- printed invoice (only visible when printing / saving as PDF) ---------- */
+.print-sheet { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  body.printing { background: #fff; }
+  body.printing > *:not(.print-sheet) { display: none !important; }
+  body.printing .print-sheet { display: block; }
+}
+.print-sheet {
+  position: relative; color: #1e293b; font: 12.5px/1.5 var(--font-body);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.print-sheet h1 { font-size: 17px; color: var(--navy); margin-bottom: 4px; }
+.print-sheet h2 { font-size: 26px; color: var(--navy); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.print-sheet h3 { font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+.ps-head { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 16px; border-bottom: 3px solid var(--navy); }
+.ps-seller { display: flex; gap: 12px; align-items: flex-start; max-width: 62%; }
+.ps-seller p { color: #475569; }
+.ps-title { text-align: right; }
+.ps-title dl, .ps-sum dl { margin: 0; display: grid; gap: 3px; }
+.ps-title dl > div, .ps-sum dl > div { display: flex; justify-content: space-between; gap: 18px; }
+.ps-title dt, .ps-sum dt { color: #64748b; }
+.ps-title dd, .ps-sum dd { margin: 0; font-weight: 600; color: var(--navy); font-variant-numeric: tabular-nums; }
+.ps-bill { padding: 16px 0; }
+.ps-customer { font-size: 14px; font-weight: 600; color: var(--navy); }
+.ps-pre { white-space: pre-line; }
+.ps-items { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ps-items th {
+  background: var(--navy); color: #fff; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  font-weight: 600; padding: 7px 10px; text-align: left; border: 0;
+}
+.ps-items td { padding: 8px 10px; border-top: 0; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+.ps-items th:first-child, .ps-items td:first-child { width: 28px; color: #64748b; }
+.ps-items .r { text-align: right; white-space: nowrap; }
+.ps-items tr { break-inside: avoid; }
+.ps-sum { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-top: 12px; break-inside: avoid; }
+.ps-words { max-width: 55%; color: #475569; }
+.ps-words strong { color: var(--navy); }
+.ps-sum dl { min-width: 220px; }
+.ps-total { border-top: 2px solid var(--navy); padding-top: 5px; margin-top: 3px; }
+.ps-total dt, .ps-total dd { font-size: 15px; font-weight: 700; color: var(--navy); }
+.ps-note { margin-top: 18px; padding: 8px 12px; border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; border-radius: 6px; }
+.ps-foot { margin-top: 40px; padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 11px; }
+.ps-foot p:first-child { color: var(--navy); font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+.ps-stamp {
+  position: absolute; top: 210px; left: 50%; transform: translateX(-50%) rotate(-18deg);
+  font: 700 72px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(185, 28, 28, 0.13); border: 6px solid rgba(185, 28, 28, 0.13); padding: 6px 26px; border-radius: 12px;
+  pointer-events: none;
+}

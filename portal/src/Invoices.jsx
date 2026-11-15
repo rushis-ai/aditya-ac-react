@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
+import PrintInvoice from './PrintInvoice.jsx'
 import { fmtDate, fmtMoney, money, serviceLabel } from './lib.js'
 
 const blankItem = () => ({ desc: '', qty: '1', rate: '' })
@@ -76,6 +77,8 @@ function InvoiceEditor({ lead, invoice, canIssue, onInvoice, onDone }) {
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [printing, setPrinting] = useState(false)
+  const stopPrinting = useCallback(() => setPrinting(false), [])
 
   const { subtotal, discount: disc, total } = invoiceTotals(items, discount)
   const setItem = (i, k) => (e) => setItems((xs) => xs.map((it, j) => (j === i ? { ...it, [k]: e.target.value } : it)))
@@ -111,6 +114,7 @@ function InvoiceEditor({ lead, invoice, canIssue, onInvoice, onDone }) {
         </h3>
         <button className="link small" onClick={() => onDone(null)}>← All invoices</button>
       </div>
+      {printing && <PrintInvoice invoice={invoice} onDone={stopPrinting} />}
 
       <div className="inv-form">
         {invoice && invoice.status !== 'Draft' && (
@@ -161,12 +165,20 @@ function InvoiceEditor({ lead, invoice, canIssue, onInvoice, onDone }) {
           <div className="grand"><dt>Total</dt><dd>{fmtMoney(total)}</dd></div>
         </dl>
 
+        {invoice && invoice.status !== 'Draft' && (
+          <div className="inv-actions">
+            <button className="btn primary" onClick={() => setPrinting(true)}>Download PDF</button>
+            <span className="muted small">Choose “Save as PDF” as the printer.</span>
+          </div>
+        )}
+
         {error && <p className="error" role="alert">{error}</p>}
 
         {draft && confirm !== 'issue' && (
           <div className="inv-actions">
             <button className="btn" onClick={() => run('save')} disabled={busy}>{busy ? 'Saving…' : 'Save draft'}</button>
             {canIssue && <button className="btn primary" onClick={() => setConfirm('issue')} disabled={busy || total <= 0}>Issue invoice</button>}
+            {invoice && <button className="btn" onClick={() => setPrinting(true)} disabled={busy} title="Shows the last saved version, marked Draft">Preview PDF</button>}
             {invoice && <button className="link small danger" onClick={() => run('discard')} disabled={busy}>Discard draft</button>}
           </div>
         )}

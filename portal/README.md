@@ -24,6 +24,9 @@ This is a separate host project from the main site, deployed from this `portal/`
   Only invoice admins (`INVOICE_ADMINS`) can **Issue** one: it gets the next number (`AAC-2627-0001`: business initials,
   financial year, running count that restarts each April) and is locked. To fix an issued invoice, cancel it
   with a reason (its number stays used) and make a new one. Every step is written to the lead's history.
+  **Download PDF** on an issued invoice opens the print dialog with a clean A4 invoice; pick "Save as PDF".
+  The file is named after the invoice number. Drafts and cancelled invoices print with a large DRAFT / CANCELLED mark.
+  The seller details printed at the top are in `src/business.js`, copied from the main site's settings.
 
 ## How the data is stored
 On first load the portal adds 6 columns to the right of the leads tab:
